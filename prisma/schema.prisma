@@ -1,24 +1,20 @@
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["referentialIntegrity"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  // Needed for Prisma Client to work in Edge functions
   directUrl = env("DIRECT_URL")
-  // Handle lack of foreign key constraint support in some DB providers
-  relationMode = "prisma"
 }
 
 model TimeSlot {
   id          Int      @id @default(autoincrement())
   date        String
   time        String
-  capacity    Int      @default(2)  // Default capacity of 2 programs per slot
+  capacity    Int      @default(2)
   available   Boolean  @default(true)
-  sessionType String   // 'daytime' or 'evening'
+  sessionType String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -35,7 +31,7 @@ model Session {
   programName  String
   sessionDate  String
   sessionTime  String
-  sessionType  String   // 'daytime' or 'evening'
+  sessionType  String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
