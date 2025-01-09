@@ -1,0 +1,15 @@
+{
+  "name": "D79 Session Registration",
+  "short_name": "D79 Sessions",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "32x32",
+      "type": "image/x-icon"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0066cc"
+} 
