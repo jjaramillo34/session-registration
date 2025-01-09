@@ -10,7 +10,7 @@
     "lint:fix": "next lint --fix",
     "seed": "npx prisma db seed",
     "postinstall": "prisma generate",
-    "vercel-build": "prisma generate && prisma db push && next build"
+    "vercel-build": "prisma generate && prisma db push && SKIP_ENV_VALIDATION=1 next build"
   },
   "dependencies": {
     "@prisma/client": "^5.10.2",
@@ -24,8 +24,6 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "@typescript-eslint/eslint-plugin": "^7.1.0",
-    "@typescript-eslint/parser": "^7.1.0",
     "eslint": "^8",
     "eslint-config-next": "14.1.0",
     "postcss": "^8",
