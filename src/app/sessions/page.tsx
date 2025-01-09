@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Download, Search, SortAsc, SortDesc, Mail } from 'lucide-react';
+import { ArrowLeft, Download, Search, SortAsc, SortDesc, Mail, RefreshCw } from 'lucide-react';
 import { formatDate, formatTime } from '@/lib/utils';
 
 interface Session {
@@ -32,7 +32,14 @@ export default function SessionsPage() {
 
   const fetchSessions = async () => {
     try {
-      const response = await fetch('/api/sessions');
+      setLoading(true);
+      const response = await fetch('/api/sessions', {
+        cache: 'no-store',
+        next: { revalidate: 0 }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch sessions');
+      }
       const data = await response.json();
       setSessions(data);
     } catch (error) {
@@ -117,6 +124,14 @@ export default function SessionsPage() {
         <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
           Registered Sessions
         </h1>
+        <button
+          onClick={fetchSessions}
+          disabled={loading}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+        >
+          <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+          Refresh
+        </button>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
