@@ -48,7 +48,7 @@ export default function Home() {
               </div>
               <div className="flex flex-col items-center p-4 bg-white/80 dark:bg-gray-800/80 rounded-xl shadow-lg backdrop-blur-sm">
                 <Calendar className="w-8 h-8 text-blue-500 mb-2" />
-                <span className="text-2xl font-bold text-gray-900 dark:text-white">4 Days</span>
+                <span className="text-2xl font-bold text-gray-900 dark:text-white">3 Days</span>
                 <span className="text-gray-600 dark:text-gray-400">Available</span>
               </div>
               <div className="flex flex-col items-center p-4 bg-white/80 dark:bg-gray-800/80 rounded-xl shadow-lg backdrop-blur-sm">
@@ -71,7 +71,7 @@ export default function Home() {
               <ul className="space-y-3 text-gray-600 dark:text-gray-300">
                 <li className="flex items-center gap-2">
                   <CheckCircle className="w-5 h-5 text-green-500" />
-                  Available from 9:00 AM to 3:30 PM
+                  Available from 11:30 AM to 1:30 PM
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle className="w-5 h-5 text-green-500" />
@@ -94,7 +94,7 @@ export default function Home() {
               <ul className="space-y-3 text-gray-600 dark:text-gray-300">
                 <li className="flex items-center gap-2">
                   <CheckCircle className="w-5 h-5 text-green-500" />
-                  Available from 5:00 PM to 7:30 PM
+                  Available from 6:00 PM to 6:30 PM
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle className="w-5 h-5 text-green-500" />
