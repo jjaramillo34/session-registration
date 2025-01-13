@@ -25,17 +25,31 @@ model TimeSlot {
 }
 
 model Session {
-  id           Int      @id @default(autoincrement())
-  name         String
-  email        String
-  programName  String
-  sessionDate  String
-  sessionTime  String
-  sessionType  String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id            Int      @id @default(autoincrement())
+  name          String
+  email         String
+  programName   String
+  sessionDate   String
+  sessionTime   String
+  sessionType   String
+  teamsLink     String?  @default("")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  signups       Signup[]
 
   @@index([email])
   @@index([sessionDate, sessionTime])
   @@index([sessionType])
+}
+
+model Signup {
+  id        Int      @id @default(autoincrement())
+  email     String
+  name      String
+  session   Session  @relation(fields: [sessionId], references: [id])
+  sessionId Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sessionId])
 } 

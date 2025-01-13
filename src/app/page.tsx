@@ -1,160 +1,204 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowRight, Clock, Users, Calendar, CheckCircle } from 'lucide-react';
+import { CalendarCheck, Video, Heart } from 'lucide-react';
+import { Instagram, Facebook, Twitter } from 'lucide-react';
+
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] dark:bg-grid-slate-700/25 dark:[mask-image:linear-gradient(0deg,rgba(255,255,255,0.1),rgba(255,255,255,0.5))]" />
-      
-      <div className="relative">
-        {/* Hero Section */}
-        <div className="container mx-auto px-4 pt-24 pb-16">
-          <div className="flex flex-col items-center text-center">
-            {/* Logo with glow effect */}
-            <div className="mb-12 relative w-48 h-48 mx-auto">
-              <div className="absolute inset-0 bg-blue-500/20 dark:bg-blue-500/40 rounded-full blur-2xl" />
-              <Image
-                src="/img/d79-logo.png"
-                alt="D79 Logo"
-                fill
-                className="object-contain relative z-10 drop-shadow-xl"
-                priority
-              />
-            </div>
+    <div className="min-h-screen bg-gradient-to-b from-blue-100 to-white dark:from-blue-900 dark:to-gray-900 relative overflow-hidden">
+      {/* Asterisk Background Pattern */}
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="/img/asterisk.png"
+          alt="Background Pattern"
+          fill
+          className="object-cover opacity-20"
+          priority
+        />
+      </div>
 
-            {/* Main Title with gradient */}
-            <h1 className="text-6xl font-bold mb-6 bg-gradient-to-r from-gray-900 via-blue-800 to-gray-900 dark:from-white dark:via-blue-300 dark:to-white bg-clip-text text-transparent">
-              D79 Week Session Registration
-            </h1>
-            
-            <p className="text-2xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed mb-16 mt-12">
-              Join us for an exciting week of collaborative sessions and presentations. 
-              Register now to secure your preferred time slots for both daytime and evening sessions.
-            </p>
-
-            {/* Stats/Quick Info */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16 w-full max-w-4xl mx-auto">
-              <div className="flex flex-col items-center p-4 bg-white/80 dark:bg-gray-800/80 rounded-xl shadow-lg backdrop-blur-sm">
-                <Clock className="w-8 h-8 text-blue-500 mb-2" />
-                <span className="text-2xl font-bold text-gray-900 dark:text-white">30 min</span>
-                <span className="text-gray-600 dark:text-gray-400">Per Session</span>
-              </div>
-              <div className="flex flex-col items-center p-4 bg-white/80 dark:bg-gray-800/80 rounded-xl shadow-lg backdrop-blur-sm">
-                <Users className="w-8 h-8 text-blue-500 mb-2" />
-                <span className="text-2xl font-bold text-gray-900 dark:text-white">2 Types</span>
-                <span className="text-gray-600 dark:text-gray-400">of Sessions</span>
-              </div>
-              <div className="flex flex-col items-center p-4 bg-white/80 dark:bg-gray-800/80 rounded-xl shadow-lg backdrop-blur-sm">
-                <Calendar className="w-8 h-8 text-blue-500 mb-2" />
-                <span className="text-2xl font-bold text-gray-900 dark:text-white">3 Days</span>
-                <span className="text-gray-600 dark:text-gray-400">Available</span>
-              </div>
-              <div className="flex flex-col items-center p-4 bg-white/80 dark:bg-gray-800/80 rounded-xl shadow-lg backdrop-blur-sm">
-                <CheckCircle className="w-8 h-8 text-blue-500 mb-2" />
-                <span className="text-2xl font-bold text-gray-900 dark:text-white">Easy</span>
-                <span className="text-gray-600 dark:text-gray-400">Registration</span>
-              </div>
-            </div>
+      <div className="container mx-auto px-4 py-12 relative z-10">
+        {/* Logos */}
+        <div className="flex justify-between items-center mb-8 max-w-4xl mx-auto">
+          <div className="relative w-24 h-24">
+            <Image
+              src="/img/d79-logo.png"
+              alt="D79 Logo"
+              fill
+              className="object-contain"
+              priority
+            />
           </div>
-
-          {/* Session Types */}
-          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-16">
-            <div className="group p-8 bg-white/90 dark:bg-gray-800/90 rounded-2xl shadow-lg backdrop-blur-sm transform transition-all duration-300 hover:scale-105">
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
-                  <Clock className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                </div>
-                Daytime Sessions
-              </h3>
-              <ul className="space-y-3 text-gray-600 dark:text-gray-300">
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  Available from 11:30 AM to 1:30 PM
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  Perfect for NYCPS staff presentations
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  30-minute time slots
-                </li>
-              </ul>
-            </div>
-
-            <div className="group p-8 bg-white/90 dark:bg-gray-800/90 rounded-2xl shadow-lg backdrop-blur-sm transform transition-all duration-300 hover:scale-105">
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
-                  <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                </div>
-                Evening Sessions
-              </h3>
-              <ul className="space-y-3 text-gray-600 dark:text-gray-300">
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  Available from 6:00 PM to 6:30 PM
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  Ideal for community members and partners
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  Flexible scheduling options
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          {/* CTA Button */}
-          <div className="text-center">
-            <Link
-              href="/registration"
-              className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-10 py-5 rounded-xl text-xl font-medium transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:-translate-y-1"
-            >
-              Start Your Registration
-              <ArrowRight className="w-6 h-6" />
-            </Link>
+          <div className="relative w-24 h-24">
+            <Image
+              src="/img/NYC logo.png"
+              alt="NYC Logo"
+              fill
+              className="object-contain"
+              priority
+            />
           </div>
         </div>
 
-        {/* Footer */}
-        <footer className="py-8 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border-t border-gray-200 dark:border-gray-700">
-          <div className="container mx-auto px-4">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <div className="text-gray-600 dark:text-gray-400">
-                © 2024 District 79. All rights reserved.
-              </div>
-              <div className="flex items-center gap-6">
-                <a
-                  href="https://www.schools.nyc.gov/learning/adult-education"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
-                >
-                  Adult Education
-                </a>
-                <a
-                  href="https://www.schools.nyc.gov"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
-                >
-                  NYC Schools
-                </a>
-                <a
-                  href="mailto:support@d79.edu"
-                  className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
-                >
-                  Contact
-                </a>
-              </div>
+        <div className="max-w-4xl mx-auto text-center space-y-8">
+          {/* Header */}
+          <div className="space-y-4">
+            <h2 className="text-2xl text-blue-700 dark:text-blue-300 font-bold">
+              FEBRUARY 10 - FEBRUARY 14, 2025
+            </h2>
+            <div className="space-y-2">
+              <h1 className="text-5xl font-bold text-blue-800 dark:text-blue-200">
+                DISTRICT 79
+              </h1>
+              <h1 className="text-5xl font-bold text-blue-800 dark:text-blue-200">
+                TAKEOVER
+              </h1>
+              <h1 className="text-5xl font-bold text-blue-800 dark:text-blue-200">
+                WEEK
+              </h1>
             </div>
           </div>
-        </footer>
+
+          {/* Main Content */}
+          <div className="bg-blue-50/90 dark:bg-blue-900/80 p-8 rounded-xl shadow-lg space-y-6 backdrop-blur-sm">
+            <h2 className="text-3xl font-bold text-blue-800 dark:text-blue-200">
+              JOIN US AS WE "TAKEOVER" NYC.
+            </h2>
+            
+            <div className="space-y-4 text-lg text-blue-700 dark:text-blue-300">
+              <p className="font-semibold">
+                LEARN MORE ABOUT THE OPPORTUNITIES WITHIN D79!
+              </p>
+              <p className="font-semibold">
+                OPEN TO NYCPS EMPLOYEES!
+              </p>
+              <p className="font-semibold">
+                SPECIAL EVENING SESSIONS AVAILABLE FOR COMMUNITY MEMBERS!
+              </p>
+            </div>
+
+            {/* Event Timeline */}
+            <div className="mt-12 space-y-8">
+              {/* Kick Off Event */}
+              <div className="bg-white/90 dark:bg-gray-800/90 p-6 rounded-lg shadow-md backdrop-blur-sm">
+                <div className="flex items-center justify-center gap-4">
+                  <CalendarCheck className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                  <div>
+                    <h3 className="text-2xl font-bold text-blue-800 dark:text-blue-200 mb-2">
+                      KICK OFF AT TWEED
+                    </h3>
+                    <p className="text-blue-700 dark:text-blue-300">
+                      FEBRUARY 10 2025- 10AM-1PM
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Virtual Sessions and District Crawls side by side */}
+              <div className="grid md:grid-cols-2 gap-8">
+                {/* Virtual Sessions */}
+                <Link href="/register">
+                  <div className="bg-gradient-to-br from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 p-8 rounded-2xl shadow-lg transform hover:scale-105 transition-all duration-300 text-white group">
+                    <div className="text-center space-y-4">
+                      <Video className="w-12 h-12 mx-auto mb-2 transform group-hover:scale-110 transition-transform duration-300" />
+                      <h3 className="text-2xl font-bold mb-2">
+                        FEBRUARY 11 - 13, 2025
+                      </h3>
+                      <div className="space-y-2">
+                        <p className="text-lg">
+                          D79 PROGRAM
+                        </p>
+                        <p className="text-xl font-bold">
+                          VIRTUAL SESSIONS
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+
+                {/* District Crawls */}
+                <Link href="/register">
+                  <div className="bg-gradient-to-br from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 p-8 rounded-2xl shadow-lg transform hover:scale-105 transition-all duration-300 text-white group">
+                    <div className="text-center space-y-4">
+                      <Heart className="w-12 h-12 mx-auto mb-2 transform group-hover:scale-110 transition-transform duration-300" />
+                      <h3 className="text-2xl font-bold mb-2">
+                        FEBRUARY 14, 2025
+                      </h3>
+                      <div className="space-y-2">
+                        <p className="text-xl font-bold">
+                          DISTRICT 79
+                        </p>
+                        <p className="text-xl font-bold">
+                          CRAWLS!
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              </div>
+            </div>
+
+            {/* Call to Action */}
+            <div className="mt-8">
+              <Link
+                href="/register"
+                className="inline-block px-8 py-4 text-xl font-bold text-white bg-blue-600 rounded-full hover:bg-blue-700 transition-colors duration-200 shadow-lg hover:shadow-xl"
+              >
+                Register Now
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
-    </main>
+
+      {/* Footer Socials */}
+      <div className="mt-12 pb-8">
+        <h3 className="text-center text-xl font-bold text-blue-800 dark:text-blue-200 mb-6">
+          Follow Us On Social Media
+        </h3>
+        <div className="flex justify-center items-center gap-8">
+          <Link 
+            href="https://www.d79.nyc/#" 
+            target="_blank"
+            className="group flex flex-col items-center gap-2 transition-transform hover:scale-110"
+          >
+            <div className="p-3 bg-white dark:bg-gray-800 rounded-full shadow-lg group-hover:shadow-xl transition-all">
+              <Instagram className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            </div>
+            <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+              Instagram
+            </span>
+          </Link>
+
+          <Link 
+            href="https://www.facebook.com/d79takeover" 
+            target="_blank"
+            className="group flex flex-col items-center gap-2 transition-transform hover:scale-110"
+          >
+            <div className="p-3 bg-white dark:bg-gray-800 rounded-full shadow-lg group-hover:shadow-xl transition-all">
+              <Facebook className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            </div>
+            <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+              Facebook
+            </span>
+          </Link>
+
+          <Link 
+            href="https://x.com/district79nyc?lang=en" 
+            target="_blank"
+            className="group flex flex-col items-center gap-2 transition-transform hover:scale-110"
+          >
+            <div className="p-3 bg-white dark:bg-gray-800 rounded-full shadow-lg group-hover:shadow-xl transition-all">
+              <Twitter className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            </div>
+            <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+              Twitter
+            </span>
+          </Link>
+        </div>
+      </div>
+      
+    </div>
   );
 }

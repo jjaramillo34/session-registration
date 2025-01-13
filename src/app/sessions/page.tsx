@@ -1,8 +1,9 @@
 'use client';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Download, Search, SortAsc, SortDesc, Mail, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Download, Search, SortAsc, SortDesc, Mail, RefreshCw, Info } from 'lucide-react';
 import { formatDate, formatTime } from '@/lib/utils';
+import SessionDetails from '@/components/SessionDetails';
 
 interface Session {
   id: number;
@@ -12,6 +13,7 @@ interface Session {
   sessionDate: string;
   sessionTime: string;
   sessionType: 'daytime' | 'evening';
+  teamsLink?: string;
 }
 
 type SortField = 'name' | 'email' | 'programName' | 'sessionDate' | 'sessionTime' | 'sessionType';
@@ -22,24 +24,17 @@ export default function SessionsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'daytime' | 'evening'>('all');
-  const [filterDate, setFilterDate] = useState<string>('all');
+  const [filterDate, setFilterDate] = useState('all');
   const [sortField, setSortField] = useState<SortField>('sessionDate');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
+  const [selectedSession, setSelectedSession] = useState<Session | null>(null);
 
-  useEffect(() => {
-    fetchSessions();
-  }, []);
+  const uniqueDates = [...new Set(sessions.map(s => s.sessionDate))].sort();
 
   const fetchSessions = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/sessions', {
-        cache: 'no-store',
-        next: { revalidate: 0 }
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch sessions');
-      }
+      const response = await fetch('/api/sessions');
       const data = await response.json();
       setSessions(data);
     } catch (error) {
@@ -49,58 +44,9 @@ export default function SessionsPage() {
     }
   };
 
-  const filteredSessions = sessions
-    .filter(session => {
-      const matchesSearch = 
-        session.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        session.programName.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesType = filterType === 'all' || session.sessionType === filterType;
-      const matchesDate = filterDate === 'all' || session.sessionDate === filterDate;
-      return matchesSearch && matchesType && matchesDate;
-    })
-    .sort((a, b) => {
-      const aValue = a[sortField];
-      const bValue = b[sortField];
-      const order = sortOrder === 'asc' ? 1 : -1;
-      return aValue < bValue ? -1 * order : aValue > bValue ? 1 * order : 0;
-    });
-
-  const uniqueDates = [...new Set(sessions.map(s => s.sessionDate))].sort();
-
-  const tableColumns = [
-    { field: 'name', label: 'Name' },
-    { field: 'email', label: 'Email' },
-    { field: 'programName', label: 'Program' },
-    { field: 'sessionDate', label: 'Date' },
-    { field: 'sessionTime', label: 'Time' },
-    { field: 'sessionType', label: 'Session Type' }
-  ];
-
-  const exportToCSV = () => {
-    const headers = ['Name', 'Email', 'Program', 'Date', 'Time', 'Session Type'];
-    const csvData = filteredSessions.map(session => [
-      session.name,
-      session.email,
-      session.programName,
-      formatDate(session.sessionDate),
-      formatTime(session.sessionTime),
-      session.sessionType
-    ]);
-    
-    const csvContent = [
-      headers.join(','),
-      ...csvData.map(row => row.join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `sessions-${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  useEffect(() => {
+    fetchSessions();
+  }, []);
 
   const handleSort = (field: SortField) => {
     if (field === sortField) {
@@ -110,6 +56,44 @@ export default function SessionsPage() {
       setSortOrder('asc');
     }
   };
+
+  const handleUpdateSession = async (id: number, teamsLink: string) => {
+    try {
+      const response = await fetch(`/api/sessions/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ teamsLink }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update session');
+      }
+
+      const updatedSession = await response.json();
+      setSessions(sessions.map(s => s.id === id ? { ...s, teamsLink } : s));
+      setSelectedSession(null);
+    } catch (error) {
+      console.error('Failed to update session:', error);
+      throw error;
+    }
+  };
+
+  const filteredSessions = sessions
+    .filter(session => {
+      const matchesSearch = session.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        session.programName.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesType = filterType === 'all' || session.sessionType === filterType;
+      const matchesDate = filterDate === 'all' || session.sessionDate === filterDate;
+      return matchesSearch && matchesType && matchesDate;
+    })
+    .sort((a, b) => {
+      const aValue = a[sortField];
+      const bValue = b[sortField];
+      const order = sortOrder === 'asc' ? 1 : -1;
+      return aValue < bValue ? -order : aValue > bValue ? order : 0;
+    });
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -187,7 +171,30 @@ export default function SessionsPage() {
         </select>
 
         <button
-          onClick={exportToCSV}
+          onClick={() => {
+            const csvContent = [
+              ['Name', 'Email', 'Program', 'Date', 'Time', 'Type', 'Teams Link'],
+              ...filteredSessions.map(s => [
+                s.name,
+                s.email,
+                s.programName,
+                formatDate(s.sessionDate),
+                formatTime(s.sessionTime),
+                s.sessionType,
+                s.teamsLink || ''
+              ])
+            ].map(row => row.join(',')).join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `sessions-${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+          }}
           className="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
         >
           <Download className="w-5 h-5" />
@@ -195,83 +202,129 @@ export default function SessionsPage() {
         </button>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                {tableColumns.map(({ field, label }) => (
-                  <th
-                    key={field}
-                    onClick={() => handleSort(field as SortField)}
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
-                  >
-                    <div className="flex items-center gap-2">
-                      {field === 'email' && <Mail className="w-4 h-4" />}
-                      {label}
-                      {sortField === field && (
-                        sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />
-                      )}
-                    </div>
-                  </th>
-                ))}
+                <th 
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer"
+                  onClick={() => handleSort('name')}
+                >
+                  <div className="flex items-center gap-1">
+                    Name
+                    {sortField === 'name' && (
+                      sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />
+                    )}
+                  </div>
+                </th>
+                <th 
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer"
+                  onClick={() => handleSort('programName')}
+                >
+                  <div className="flex items-center gap-1">
+                    Program
+                    {sortField === 'programName' && (
+                      sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />
+                    )}
+                  </div>
+                </th>
+                <th 
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer"
+                  onClick={() => handleSort('sessionDate')}
+                >
+                  <div className="flex items-center gap-1">
+                    Date
+                    {sortField === 'sessionDate' && (
+                      sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />
+                    )}
+                  </div>
+                </th>
+                <th 
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer"
+                  onClick={() => handleSort('sessionTime')}
+                >
+                  <div className="flex items-center gap-1">
+                    Time
+                    {sortField === 'sessionTime' && (
+                      sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />
+                    )}
+                  </div>
+                </th>
+                <th 
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer"
+                  onClick={() => handleSort('sessionType')}
+                >
+                  <div className="flex items-center gap-1">
+                    Type
+                    {sortField === 'sessionType' && (
+                      sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />
+                    )}
+                  </div>
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {loading ? (
-                <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center">
-                    <div className="flex items-center justify-center">
-                      <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              {filteredSessions.map((session) => (
+                <tr key={session.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="text-sm font-medium text-gray-900 dark:text-white">{session.name}</div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900 dark:text-white">{session.programName}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900 dark:text-white">{formatDate(session.sessionDate)}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900 dark:text-white">{formatTime(session.sessionTime)}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      session.sessionType === 'daytime'
+                        ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
+                        : 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300'
+                    }`}>
+                      {session.sessionType}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setSelectedSession(session)}
+                        className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                        title="View Details"
+                      >
+                        <Info className="w-5 h-5" />
+                      </button>
+                      <a
+                        href={`mailto:${session.email}`}
+                        className="text-gray-600 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                        title="Send Email"
+                      >
+                        <Mail className="w-5 h-5" />
+                      </a>
                     </div>
                   </td>
                 </tr>
-              ) : filteredSessions.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
-                    No sessions found matching your criteria.
-                  </td>
-                </tr>
-              ) : (
-                filteredSessions.map((session) => (
-                  <tr key={session.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                      {session.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                      <a 
-                        href={`mailto:${session.email}`}
-                        className="flex items-center gap-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-                      >
-                        <Mail className="w-4 h-4" />
-                        {session.email}
-                      </a>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                      {session.programName}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                      {formatDate(session.sessionDate)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                      {formatTime(session.sessionTime)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        session.sessionType === 'daytime' 
-                          ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' 
-                          : 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300'
-                      }`}>
-                        {session.sessionType === 'daytime' ? 'Daytime' : 'Evening'}
-                      </span>
-                    </td>
-                  </tr>
-                ))
-              )}
+              ))}
             </tbody>
           </table>
         </div>
       </div>
+
+      {selectedSession && (
+        <SessionDetails
+          session={selectedSession}
+          onClose={() => setSelectedSession(null)}
+          onUpdate={handleUpdateSession}
+        />
+      )}
     </div>
   );
 } 

@@ -1,105 +1,110 @@
-import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-
-export const runtime = 'nodejs';
-
-interface RegistrationData {
-  name: string;
-  email: string;
-  programName: string;
-  daytimeSession1: {
-    date: string;
-    time: string;
-  };
-  eveningSession: {
-    date: string;
-    time: string;
-  };
-}
+import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
-  console.log('🚀 Registration request received');
-  
   try {
-    const data: RegistrationData = await request.json();
-    console.log('📦 Received data:', JSON.stringify(data, null, 2));
+    const body = await request.json();
+    const { name, email, programName, daytimeSession1, daytimeSession2, eveningSession } = body;
 
-    // Start transaction
+    // Validate required fields
+    if (!name || !email || !programName || 
+        !daytimeSession1?.date || !daytimeSession1?.time ||
+        !daytimeSession2?.date || !daytimeSession2?.time ||
+        !eveningSession?.date || !eveningSession?.time) {
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
+
+    // Start a transaction to ensure all operations succeed or fail together
     const result = await prisma.$transaction(async (tx) => {
-      // Check if slots exist and have capacity using raw query
-      const availableSlots = await tx.$queryRaw`
-        SELECT id, date, time, capacity, available, "sessionType"
-        FROM "TimeSlot"
-        WHERE (date = ${data.daytimeSession1.date} AND time = ${data.daytimeSession1.time}
-           OR date = ${data.eveningSession.date} AND time = ${data.eveningSession.time})
-          AND available = true
-          AND capacity > 0
-      `;
+      // Check slot availability for all sessions
+      const slots = await tx.timeSlot.findMany({
+        where: {
+          OR: [
+            { date: daytimeSession1.date, time: daytimeSession1.time, sessionType: 'daytime' },
+            { date: daytimeSession2.date, time: daytimeSession2.time, sessionType: 'daytime' },
+            { date: eveningSession.date, time: eveningSession.time, sessionType: 'evening' }
+          ],
+          available: true
+        }
+      });
 
-      const slots = availableSlots as { 
-        id: number;
-        date: string;
-        time: string;
-        capacity: number;
-        available: boolean;
-        sessionType: string;
-      }[];
+      if (slots.length !== 3) {
+        throw new Error('One or more selected time slots are no longer available');
+      }
 
-      console.log('🔍 Found available slots:', slots.length);
-
-      if (slots.length !== 2) {
-        return NextResponse.json(
-          { error: 'One or more selected slots are not available' },
-          { status: 400 }
-        );
+      // Validate that daytime sessions are on different dates
+      if (daytimeSession1.date === daytimeSession2.date) {
+        throw new Error('Daytime sessions must be on different dates');
       }
 
       // Create sessions
-      const sessions = await Promise.all([
+      const [session1, session2, session3] = await Promise.all([
+        // First daytime session
         tx.session.create({
           data: {
-            name: data.name,
-            email: data.email,
-            programName: data.programName,
-            sessionDate: data.daytimeSession1.date,
-            sessionTime: data.daytimeSession1.time,
+            name: name.trim(),
+            email: email.toLowerCase().trim(),
+            programName: programName.trim(),
+            sessionDate: daytimeSession1.date,
+            sessionTime: daytimeSession1.time,
             sessionType: 'daytime',
+            teamsLink: ''
           }
         }),
+        // Second daytime session
         tx.session.create({
           data: {
-            name: data.name,
-            email: data.email,
-            programName: data.programName,
-            sessionDate: data.eveningSession.date,
-            sessionTime: data.eveningSession.time,
+            name: name.trim(),
+            email: email.toLowerCase().trim(),
+            programName: programName.trim(),
+            sessionDate: daytimeSession2.date,
+            sessionTime: daytimeSession2.time,
+            sessionType: 'daytime',
+            teamsLink: ''
+          }
+        }),
+        // Evening session
+        tx.session.create({
+          data: {
+            name: name.trim(),
+            email: email.toLowerCase().trim(),
+            programName: programName.trim(),
+            sessionDate: eveningSession.date,
+            sessionTime: eveningSession.time,
             sessionType: 'evening',
+            teamsLink: ''
           }
         })
       ]);
 
-      // Update slot capacity and availability using raw query
-      await Promise.all(
-        slots.map(slot => 
-          tx.$executeRaw`
-            UPDATE "TimeSlot"
-            SET capacity = capacity - 1,
-                available = CASE WHEN capacity - 1 > 0 THEN true ELSE false END
-            WHERE id = ${slot.id}
-          `
-        )
-      );
+      // Update slot availability
+      await Promise.all([
+        tx.timeSlot.update({
+          where: { id: slots[0].id },
+          data: { available: false }
+        }),
+        tx.timeSlot.update({
+          where: { id: slots[1].id },
+          data: { available: false }
+        }),
+        tx.timeSlot.update({
+          where: { id: slots[2].id },
+          data: { available: false }
+        })
+      ]);
 
-      return sessions;
+      return { session1, session2, session3 };
     });
 
-    return NextResponse.json({ success: true, sessions: result });
-
+    return NextResponse.json(result);
   } catch (error) {
-    console.error('❌ Registration failed:', error);
+    console.error('Failed to register sessions:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to register' },
-      { status: 500 }
+      { error: error instanceof Error ? error.message : 'Failed to register sessions' },
+      { status: 400 }
     );
   }
 } 

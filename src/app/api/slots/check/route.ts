@@ -1,27 +1,29 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
-const prisma = new PrismaClient();
-
-interface TimeSlot {
-  date: string;
-  time: string;
-  available: boolean;
-}
+const DATES = ['2025-02-11', '2025-02-12', '2025-02-13'];
 
 export async function GET() {
   try {
     const slots = await prisma.timeSlot.findMany({
+      where: {
+        date: {
+          in: DATES
+        }
+      },
       orderBy: [
         { date: 'asc' },
         { time: 'asc' }
       ]
     });
 
+    const totalSlots = slots.length;
+    const availableSlots = slots.filter(slot => slot.available).length;
+
     return NextResponse.json({
-      total: slots.length,
-      available: slots.filter((slot: TimeSlot) => slot.available).length,
-      slots: slots
+      total: totalSlots,
+      available: availableSlots,
+      slots
     });
   } catch (error) {
     console.error('Failed to check slots:', error);

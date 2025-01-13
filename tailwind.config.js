@@ -16,10 +16,10 @@ module.exports = {
       },
     },
   },
-  plugins: [],
-  future: {
-    removeDeprecatedGapUtilities: true,
-    purgeLayersByDefault: true,
-  },
+  plugins: [
+    require('@tailwindcss/forms')({
+      strategy: 'class',
+    }),
+  ],
   darkMode: 'class',
 } 

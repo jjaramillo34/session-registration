@@ -1,26 +1,44 @@
 "use client";
-import { useForm } from "react-hook-form";
-import { FormData } from "@/types";
-import { SESSION_DATES } from "@/constants";
-import { useState, useEffect } from "react";
-import { Calendar, User, Mail, Building2, CheckCircle } from "lucide-react";
-import ThankYouModal from './ThankYouModal';
+import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
-import { formatTime } from '@/lib/utils';
+import { D79_PROGRAMS } from '@/lib/constants';
+
+interface RegistrationFormData {
+  name: string;
+  email: string;
+  programName: string;
+  daytimeSession1: {
+    date: string;
+    time: string;
+  };
+  daytimeSession2: {
+    date: string;
+    time: string;
+  };
+  eveningSession: {
+    date: string;
+    time: string;
+  };
+}
 
 interface TimeSlot {
-  id: number;
   date: string;
   time: string;
   available: boolean;
-  sessionType: string;
+  sessionType: 'daytime' | 'evening';
 }
 
-export default function RegistrationForm() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
-  const [isModalOpen, setIsModalOpen] = useState(false);
+interface RegistrationFormProps {
+  programId?: string;
+}
+
+export default function RegistrationForm({ programId }: RegistrationFormProps) {
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const router = useRouter();
 
   const {
@@ -28,280 +46,389 @@ export default function RegistrationForm() {
     handleSubmit,
     formState: { errors },
     watch,
-    reset,
-  } = useForm<FormData>();
+    setValue,
+    setError,
+    clearErrors
+  } = useForm<RegistrationFormData>();
+
+  // Set the program name based on the programId if provided
+  useEffect(() => {
+    if (programId) {
+      setValue('programName', programId);
+    }
+  }, [programId, setValue]);
+
+  // Watch daytime session dates for validation
+  const daytimeSession1Date = watch('daytimeSession1.date');
+  const daytimeSession2Date = watch('daytimeSession2.date');
+
+  // Validate daytime sessions are on different dates
+  useEffect(() => {
+    if (daytimeSession1Date && daytimeSession2Date && daytimeSession1Date === daytimeSession2Date) {
+      setError('daytimeSession2.date', {
+        type: 'manual',
+        message: 'Second daytime session must be on a different date'
+      });
+    } else {
+      clearErrors('daytimeSession2.date');
+    }
+  }, [daytimeSession1Date, daytimeSession2Date, setError, clearErrors]);
 
   useEffect(() => {
-    const fetchAvailableSlots = async () => {
-      try {
-        const response = await fetch('/api/slots/available');
-        const data = await response.json();
-        setAvailableSlots(data.slots);
-      } catch (error) {
-        console.error('Failed to fetch available slots:', error);
-      }
-    };
-
-    fetchAvailableSlots();
+    setIsClient(true);
   }, []);
 
-  const onSubmit = async (data: FormData) => {
-    setIsSubmitting(true);
-    setSubmitStatus('idle');
-    
+  const fetchAvailableSlots = async () => {
     try {
-      // Format the data before sending
-      const formattedData = {
-        name: data.name.trim(),
-        email: data.email.toLowerCase().trim(),
-        programName: data.programName.trim(),
-        daytimeSession1: {
-          date: data.daytimeSession1Date,
-          time: data.daytimeSession1Time
-        },
-        eveningSession: {
-          date: data.eveningSessionDate,
-          time: data.eveningSessionTime
-        }
-      };
+      setIsLoading(true);
+      const response = await fetch('/api/slots/available');
+      const data = await response.json();
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      console.log('Available slots:', data.slots);
+      console.log('Unique dates:', [...new Set(data.slots.map((slot: TimeSlot) => slot.date))]);
+      console.log('Daytime slots:', data.slots.filter((slot: TimeSlot) => slot.sessionType === 'daytime'));
+      console.log('Evening slots:', data.slots.filter((slot: TimeSlot) => slot.sessionType === 'evening'));
+      setAvailableSlots(data.slots || []);
+    } catch (error) {
+      console.error('Failed to fetch available slots:', error);
+      setAvailableSlots([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-      console.log('📝 Sending registration data:', formattedData);
+  useEffect(() => {
+    if (isClient) {
+      fetchAvailableSlots();
+    }
+  }, [isClient]);
 
+  const onSubmit = async (data: RegistrationFormData) => {
+    try {
+      setFormError(null);
+      setIsLoading(true);
       const response = await fetch('/api/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formattedData),
+        body: JSON.stringify(data),
       });
-      
-      const responseData = await response.json();
-      console.log('📥 Received response:', responseData);
 
-      if (response.ok) {
-        setSubmitStatus('success');
-        setIsModalOpen(true);
-        reset();
-        setTimeout(() => {
-          router.push('/sessions');
-        }, 2000);
-      } else {
-        throw new Error(responseData.error || 'Registration failed');
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to register');
       }
+
+      // Show success modal
+      setShowSuccessModal(true);
+      
+      // Redirect to homepage after a delay
+      setTimeout(() => {
+        router.push('/');
+      }, 2000);
     } catch (error) {
-      console.error('❌ Registration failed:', error);
-      setSubmitStatus('error');
+      console.error('Registration failed:', error);
+      setFormError(error instanceof Error ? error.message : 'Registration failed');
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
-  const getAvailableSlots = (type: 'daytime' | 'evening', selectedDate: string | undefined) => {
-    if (!selectedDate) return null;
-    
-    return availableSlots
-      .filter(slot => slot.sessionType === type && slot.date === selectedDate)
-      .map(slot => (
-        <option key={slot.time} value={slot.time}>
-          {formatTime(slot.time)}
-        </option>
-      ));
+  const daytimeSlots = availableSlots.filter(slot => slot.sessionType === 'daytime');
+  const eveningSlots = availableSlots.filter(slot => slot.sessionType === 'evening');
+
+  const formatDate = (dateString: string) => {
+    console.log('Formatting date:', dateString);
+    // Create date with explicit year, month, day to avoid timezone issues
+    const [year, month, day] = dateString.split('-').map(num => parseInt(num));
+    const date = new Date(year, month - 1, day); // month is 0-based in Date constructor
+    const formatted = date.toLocaleDateString('en-US', { 
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      timeZone: 'UTC'  // Use UTC to avoid timezone shifts
+    });
+    console.log('Formatted date:', formatted);
+    return formatted;
   };
 
-  return (
-    <>
-      <div className="w-full max-w-5xl p-8 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl shadow-lg transition-all">
-        <h2 className="text-3xl font-bold mb-4 text-center text-gray-800 dark:text-white">
-          Session Registration
-        </h2>
+  const formatTime = (timeString: string) => {
+    const [hours, minutes] = timeString.split(':');
+    const date = new Date();
+    date.setHours(parseInt(hours), parseInt(minutes));
+    return date.toLocaleTimeString('en-US', { 
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true 
+    });
+  };
 
-        <div className="mb-8 text-gray-600 dark:text-gray-300 space-y-4 max-w-3xl mx-auto">
-          <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
-            <h3 className="font-medium text-blue-800 dark:text-blue-200 mb-2">Instructions:</h3>
-            <ul className="list-disc list-inside space-y-2 text-sm">
-              <li>Please select two daytime sessions that you will host. The audience for these sessions will be NYCPS staff.</li>
-              <li>Please select one evening session that you will host. The audience for this session will be community members and partners.</li>
-              <li>Each session will last 30 minutes.</li>
-              <li>Note: Please ensure to mark the session with your Program name.</li>
-            </ul>
+  if (!isClient) {
+    return (
+      <div className="w-full max-w-5xl p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+        <div className="flex items-center justify-center p-8">
+          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full max-w-5xl p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 dark:bg-green-900">
+                <svg className="h-6 w-6 text-green-600 dark:text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">Registration Successful!</h3>
+              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                Thank you for registering. You will be redirected to the homepage shortly.
+              </p>
+            </div>
           </div>
         </div>
+      )}
 
-        {submitStatus === 'success' && (
-          <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-lg flex items-center gap-2">
-            <CheckCircle className="w-5 h-5" />
-            <span>Registration successful! Thank you for registering.</span>
+      <h2 className="text-3xl font-bold mb-4 text-center text-gray-800 dark:text-white">
+        Session Registration
+      </h2>
+
+      {/* Add error message display */}
+      {formError && (
+        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-lg">
+          {formError}
+        </div>
+      )}
+
+      <div className="mb-8 text-gray-600 dark:text-gray-300 space-y-4 max-w-3xl mx-auto">
+        <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
+          <h3 className="font-medium text-blue-800 dark:text-blue-200 mb-2">Instructions:</h3>
+          <ul className="list-disc list-inside space-y-2 text-sm">
+            <li>Please select two daytime sessions that you will host. The audience for these sessions will be NYCPS staff.</li>
+            <li>Please select one evening session that you will host. The audience for this session will be community members and partners.</li>
+            <li>Each session will last 30 minutes.</li>
+            <li>Note: Please ensure to mark the session with your Program name.</li>
+          </ul>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Personal Information Section */}
+          <div className="space-y-6">
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Full Name
+              </label>
+              <input
+                type="text"
+                id="name"
+                {...register('name', { required: 'Full name is required' })}
+                className="form-input mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+              {errors.name && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name.message}</p>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Email Address
+              </label>
+              <input
+                type="email"
+                id="email"
+                {...register('email', {
+                  required: 'Email is required',
+                  pattern: {
+                    value: /@schools\.nyc\.gov$/,
+                    message: 'Must be a @schools.nyc.gov email address'
+                  }
+                })}
+                className="form-input mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+              {errors.email && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email.message}</p>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="programName" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Program
+              </label>
+              <select
+                id="programName"
+                {...register('programName', { required: 'Program is required' })}
+                className="form-select mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              >
+                <option value="">Select a program</option>
+                {D79_PROGRAMS.map((program) => (
+                  <option key={program} value={program}>
+                    {program}
+                  </option>
+                ))}
+              </select>
+              {errors.programName && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.programName.message}</p>
+              )}
+            </div>
           </div>
-        )}
 
-        {submitStatus === 'error' && (
-          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-lg">
-            Registration failed. Please try again.
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* Personal Information Section */}
-            <div className="space-y-6 md:px-4">
-              <div className="relative">
-                <label htmlFor="name" className="flex items-center gap-2 text-sm font-medium mb-2 text-gray-700 dark:text-gray-200">
-                  <User className="w-4 h-4" />
-                  Full Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  {...register("name", { 
-                    required: "Full Name is required",
-                    minLength: { value: 2, message: "Name must be at least 2 characters" },
-                    pattern: { 
-                      value: /^[a-zA-Z\s'-]+$/,
-                      message: "Please enter a valid name (letters, spaces, hyphens and apostrophes only)"
-                    }
-                  })}
-                  className={`w-full px-4 py-3 border ${errors.name ? 'border-red-500' : 'border-gray-200'} dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white transition-all`}
-                  placeholder="Enter your full name"
-                />
-                {errors.name && (
-                  <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
-                )}
-              </div>
-
-              <div className="relative">
-                <label htmlFor="email" className="flex items-center gap-2 text-sm font-medium mb-2 text-gray-700 dark:text-gray-200">
-                  <Mail className="w-4 h-4" />
-                  Email Address <span className="text-red-500">*</span>
-                </label>
-                <input
-                  {...register("email", {
-                    required: "Email address is required",
-                    pattern: {
-                      value: /^[A-Z0-9._%+-]+@schools\.nyc\.gov$/i,
-                      message: "Please enter a valid @schools.nyc.gov email address"
-                    }
-                  })}
-                  type="email"
-                  className={`w-full px-4 py-3 border ${errors.email ? 'border-red-500' : 'border-gray-200'} dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white transition-all`}
-                  placeholder="your.email@schools.nyc.gov"
-                />
-                {errors.email && (
-                  <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
-                )}
-              </div>
-
-              <div className="relative">
-                <label htmlFor="programName" className="flex items-center gap-2 text-sm font-medium mb-2 text-gray-700 dark:text-gray-200">
-                  <Building2 className="w-4 h-4" />
-                  Program Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  {...register("programName", { 
-                    required: "Program name is required",
-                    minLength: { value: 2, message: "Program name must be at least 2 characters" },
-                    maxLength: { value: 100, message: "Program name must not exceed 100 characters" }
-                  })}
-                  className={`w-full px-4 py-3 border ${errors.programName ? 'border-red-500' : 'border-gray-200'} dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white transition-all`}
-                  placeholder="Enter your program name"
-                />
-                {errors.programName && (
-                  <p className="text-red-500 text-sm mt-1">{errors.programName.message}</p>
-                )}
+          {/* Session Selection Section */}
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">First Daytime Session</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="daytimeSession1Date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Date
+                  </label>
+                  <select
+                    id="daytimeSession1Date"
+                    {...register('daytimeSession1.date', { required: 'Date is required' })}
+                    className="form-select mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  >
+                    <option value="">Select a date</option>
+                    {[...new Set(daytimeSlots.map(slot => slot.date))].map(date => (
+                      <option key={date} value={date}>{formatDate(date)}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="daytimeSession1Time" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Time
+                  </label>
+                  <select
+                    id="daytimeSession1Time"
+                    {...register('daytimeSession1.time', { required: 'Time is required' })}
+                    className="form-select mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  >
+                    <option value="">Select a time</option>
+                    {daytimeSlots
+                      .filter(slot => slot.date === watch('daytimeSession1.date'))
+                      .map(slot => (
+                        <option key={slot.time} value={slot.time}>{formatTime(slot.time)}</option>
+                      ))}
+                  </select>
+                </div>
               </div>
             </div>
 
-            {/* Session Selection Section */}
-            <div className="space-y-6 md:px-4">
-              <div className="space-y-4">
-                <h3 className="flex items-center gap-2 font-medium text-gray-800 dark:text-white">
-                  <Calendar className="w-5 h-5" />
-                  Session Selection
-                </h3>
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Second Daytime Session</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="daytimeSession2Date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Date
+                  </label>
+                  <select
+                    id="daytimeSession2Date"
+                    {...register('daytimeSession2.date', { 
+                      required: 'Date is required',
+                      validate: value => 
+                        value !== daytimeSession1Date || 'Second daytime session must be on a different date'
+                    })}
+                    className="form-select mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  >
+                    <option value="">Select a date</option>
+                    {[...new Set(daytimeSlots.map(slot => slot.date))].map(date => (
+                      <option key={date} value={date}>{formatDate(date)}</option>
+                    ))}
+                  </select>
+                  {errors.daytimeSession2?.date && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.daytimeSession2.date.message}</p>
+                  )}
+                </div>
+                <div>
+                  <label htmlFor="daytimeSession2Time" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Time
+                  </label>
+                  <select
+                    id="daytimeSession2Time"
+                    {...register('daytimeSession2.time', { required: 'Time is required' })}
+                    className="form-select mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  >
+                    <option value="">Select a time</option>
+                    {daytimeSlots
+                      .filter(slot => slot.date === watch('daytimeSession2.date'))
+                      .map(slot => (
+                        <option key={slot.time} value={slot.time}>{formatTime(slot.time)}</option>
+                      ))}
+                  </select>
+                </div>
+              </div>
+            </div>
 
-                {/* Daytime Sessions */}
-                <div className="space-y-4">
-                  <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg space-y-3">
-                    <p className="text-sm font-medium text-gray-700 dark:text-gray-200">Daytime Session <span className="text-red-500">*</span></p>
-                    <div className="grid grid-cols-2 gap-2">
-                      <select
-                        {...register("daytimeSession1Date", { required: "Date is required" })}
-                        className={`px-3 py-2 border ${errors.daytimeSession1Date ? 'border-red-500' : 'border-gray-200'} dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white`}
-                      >
-                        <option value="">Select Date</option>
-                        {SESSION_DATES.map(({ value, label }) => (
-                          <option key={value} value={value}>{label}</option>
-                        ))}
-                      </select>
-                      <select
-                        {...register("daytimeSession1Time", { required: "Time is required" })}
-                        className={`px-3 py-2 border ${errors.daytimeSession1Time ? 'border-red-500' : 'border-gray-200'} dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white`}
-                        disabled={!watch('daytimeSession1Date')}
-                      >
-                        <option value="">Select Time</option>
-                        {watch('daytimeSession1Date') && getAvailableSlots('daytime', watch('daytimeSession1Date'))}
-                      </select>
-                    </div>
-                    {(errors.daytimeSession1Date || errors.daytimeSession1Time) && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.daytimeSession1Date?.message || errors.daytimeSession1Time?.message}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Evening Session */}
-                  <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg space-y-3">
-                    <p className="text-sm font-medium text-gray-700 dark:text-gray-200">Evening Session <span className="text-red-500">*</span></p>
-                    <div className="grid grid-cols-2 gap-2">
-                      <select
-                        {...register("eveningSessionDate", { required: "Date is required" })}
-                        className={`px-3 py-2 border ${errors.eveningSessionDate ? 'border-red-500' : 'border-gray-200'} dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white`}
-                      >
-                        <option value="">Select Date</option>
-                        {SESSION_DATES.map(({ value, label }) => (
-                          <option key={value} value={value}>{label}</option>
-                        ))}
-                      </select>
-                      <select
-                        {...register("eveningSessionTime", { required: "Time is required" })}
-                        className={`px-3 py-2 border ${errors.eveningSessionTime ? 'border-red-500' : 'border-gray-200'} dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white`}
-                        disabled={!watch('eveningSessionDate')}
-                      >
-                        <option value="">Select Time</option>
-                        {watch('eveningSessionDate') && getAvailableSlots('evening', watch('eveningSessionDate'))}
-                      </select>
-                    </div>
-                    {(errors.eveningSessionDate || errors.eveningSessionTime) && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.eveningSessionDate?.message || errors.eveningSessionTime?.message}
-                      </p>
-                    )}
-                  </div>
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Evening Session</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="eveningSessionDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Date
+                  </label>
+                  <select
+                    id="eveningSessionDate"
+                    {...register('eveningSession.date', { required: 'Date is required' })}
+                    className="form-select mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  >
+                    <option value="">Select a date</option>
+                    {[...new Set(eveningSlots.map(slot => slot.date))].map(date => (
+                      <option key={date} value={date}>{formatDate(date)}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="eveningSessionTime" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Time
+                  </label>
+                  <select
+                    id="eveningSessionTime"
+                    {...register('eveningSession.time', { required: 'Time is required' })}
+                    className="form-select mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  >
+                    <option value="">Select a time</option>
+                    {eveningSlots
+                      .filter(slot => slot.date === watch('eveningSession.date'))
+                      .map(slot => (
+                        <option key={slot.time} value={slot.time}>{formatTime(slot.time)}</option>
+                      ))}
+                  </select>
                 </div>
               </div>
             </div>
           </div>
+        </div>
 
-          <div className="max-w-md mx-auto pt-4">
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Registering...
-                </>
-              ) : (
-                'Complete Registration'
-              )}
-            </button>
-          </div>
-        </form>
-      </div>
-      
-      <ThankYouModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-      />
-    </>
+        <div className="max-w-md mx-auto pt-4">
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full flex justify-center py-3 px-6 border border-transparent rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoading ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Registering...
+              </>
+            ) : (
+              'Complete Registration'
+            )}
+          </button>
+        </div>
+      </form>
+    </div>
   );
 } 
