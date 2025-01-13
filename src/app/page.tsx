@@ -97,8 +97,8 @@ export default function Home() {
 
               {/* Virtual Sessions and District Crawls side by side */}
               <div className="grid md:grid-cols-2 gap-8">
-                {/* Virtual Sessions */}
-                <Link href="/register">
+                {/* Virtual Sessions - for now change to home page / register */}
+                <Link href="/">
                   <div className="bg-gradient-to-br from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 p-8 rounded-2xl shadow-lg transform hover:scale-105 transition-all duration-300 text-white group">
                     <div className="text-center space-y-4">
                       <Video className="w-12 h-12 mx-auto mb-2 transform group-hover:scale-110 transition-transform duration-300" />
@@ -118,7 +118,7 @@ export default function Home() {
                 </Link>
 
                 {/* District Crawls */}
-                <Link href="/register">
+                <Link href="/">
                   <div className="bg-gradient-to-br from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 p-8 rounded-2xl shadow-lg transform hover:scale-105 transition-all duration-300 text-white group">
                     <div className="text-center space-y-4">
                       <Heart className="w-12 h-12 mx-auto mb-2 transform group-hover:scale-110 transition-transform duration-300" />
@@ -142,7 +142,7 @@ export default function Home() {
             {/* Call to Action */}
             <div className="mt-8">
               <Link
-                href="/register"
+                href="/"
                 className="inline-block px-8 py-4 text-xl font-bold text-white bg-blue-600 rounded-full hover:bg-blue-700 transition-colors duration-200 shadow-lg hover:shadow-xl"
               >
                 Register Now

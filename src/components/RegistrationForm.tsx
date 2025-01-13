@@ -27,6 +27,7 @@ interface TimeSlot {
   time: string;
   available: boolean;
   sessionType: 'daytime' | 'evening';
+  capacity: number;
 }
 
 interface RegistrationFormProps {
@@ -81,7 +82,14 @@ export default function RegistrationForm({ programId }: RegistrationFormProps) {
   const fetchAvailableSlots = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/slots/available');
+      // Add cache-busting timestamp to URL
+      const timestamp = new Date().getTime();
+      const response = await fetch(`/api/slots/available?t=${timestamp}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      });
       const data = await response.json();
       if (data.error) {
         throw new Error(data.error);
@@ -123,6 +131,9 @@ export default function RegistrationForm({ programId }: RegistrationFormProps) {
         throw new Error(result.error || 'Failed to register');
       }
 
+      // Refresh available slots immediately after successful registration
+      await fetchAvailableSlots();
+
       // Show success modal
       setShowSuccessModal(true);
       
@@ -138,8 +149,13 @@ export default function RegistrationForm({ programId }: RegistrationFormProps) {
     }
   };
 
-  const daytimeSlots = availableSlots.filter(slot => slot.sessionType === 'daytime');
-  const eveningSlots = availableSlots.filter(slot => slot.sessionType === 'evening');
+  const daytimeSlots = availableSlots.filter(slot => 
+    slot.sessionType === 'daytime'
+  );
+
+  const eveningSlots = availableSlots.filter(slot => 
+    slot.sessionType === 'evening'
+  );
 
   const formatDate = (dateString: string) => {
     console.log('Formatting date:', dateString);
@@ -300,7 +316,9 @@ export default function RegistrationForm({ programId }: RegistrationFormProps) {
                   >
                     <option value="">Select a date</option>
                     {[...new Set(daytimeSlots.map(slot => slot.date))].map(date => (
-                      <option key={date} value={date}>{formatDate(date)}</option>
+                      <option key={date} value={date}>
+                        {formatDate(date)}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -317,7 +335,9 @@ export default function RegistrationForm({ programId }: RegistrationFormProps) {
                     {daytimeSlots
                       .filter(slot => slot.date === watch('daytimeSession1.date'))
                       .map(slot => (
-                        <option key={slot.time} value={slot.time}>{formatTime(slot.time)}</option>
+                        <option key={slot.time} value={slot.time}>
+                          {formatTime(slot.time)} ({slot.capacity} spots left)
+                        </option>
                       ))}
                   </select>
                 </div>
@@ -342,7 +362,9 @@ export default function RegistrationForm({ programId }: RegistrationFormProps) {
                   >
                     <option value="">Select a date</option>
                     {[...new Set(daytimeSlots.map(slot => slot.date))].map(date => (
-                      <option key={date} value={date}>{formatDate(date)}</option>
+                      <option key={date} value={date}>
+                        {formatDate(date)}
+                      </option>
                     ))}
                   </select>
                   {errors.daytimeSession2?.date && (
@@ -362,7 +384,9 @@ export default function RegistrationForm({ programId }: RegistrationFormProps) {
                     {daytimeSlots
                       .filter(slot => slot.date === watch('daytimeSession2.date'))
                       .map(slot => (
-                        <option key={slot.time} value={slot.time}>{formatTime(slot.time)}</option>
+                        <option key={slot.time} value={slot.time}>
+                          {formatTime(slot.time)} ({slot.capacity} spots left)
+                        </option>
                       ))}
                   </select>
                 </div>
@@ -383,7 +407,9 @@ export default function RegistrationForm({ programId }: RegistrationFormProps) {
                   >
                     <option value="">Select a date</option>
                     {[...new Set(eveningSlots.map(slot => slot.date))].map(date => (
-                      <option key={date} value={date}>{formatDate(date)}</option>
+                      <option key={date} value={date}>
+                        {formatDate(date)}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -400,7 +426,9 @@ export default function RegistrationForm({ programId }: RegistrationFormProps) {
                     {eveningSlots
                       .filter(slot => slot.date === watch('eveningSession.date'))
                       .map(slot => (
-                        <option key={slot.time} value={slot.time}>{formatTime(slot.time)}</option>
+                        <option key={slot.time} value={slot.time}>
+                          {formatTime(slot.time)} ({slot.capacity} spots left)
+                        </option>
                       ))}
                   </select>
                 </div>

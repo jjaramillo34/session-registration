@@ -19,20 +19,25 @@ export async function POST(request: Request) {
 
     // Start a transaction to ensure all operations succeed or fail together
     const result = await prisma.$transaction(async (tx) => {
-      // Check slot availability for all sessions
+      // Check slot availability and capacity for all sessions
       const slots = await tx.timeSlot.findMany({
         where: {
           OR: [
             { date: daytimeSession1.date, time: daytimeSession1.time, sessionType: 'daytime' },
             { date: daytimeSession2.date, time: daytimeSession2.time, sessionType: 'daytime' },
             { date: eveningSession.date, time: eveningSession.time, sessionType: 'evening' }
-          ],
-          available: true
+          ]
         }
       });
 
       if (slots.length !== 3) {
-        throw new Error('One or more selected time slots are no longer available');
+        throw new Error('One or more selected time slots are not found');
+      }
+
+      // Check if any slot is unavailable or has no capacity
+      const unavailableSlot = slots.find(slot => !slot.available || slot.capacity <= 0);
+      if (unavailableSlot) {
+        throw new Error(`Time slot ${unavailableSlot.date} ${unavailableSlot.time} is no longer available`);
       }
 
       // Validate that daytime sessions are on different dates
@@ -80,21 +85,17 @@ export async function POST(request: Request) {
         })
       ]);
 
-      // Update slot availability
-      await Promise.all([
-        tx.timeSlot.update({
-          where: { id: slots[0].id },
-          data: { available: false }
-        }),
-        tx.timeSlot.update({
-          where: { id: slots[1].id },
-          data: { available: false }
-        }),
-        tx.timeSlot.update({
-          where: { id: slots[2].id },
-          data: { available: false }
-        })
-      ]);
+      // Update slots based on new registration
+      await Promise.all(slots.map(async (slot) => {
+        const newCapacity = slot.capacity - 1;
+        return tx.timeSlot.update({
+          where: { id: slot.id },
+          data: { 
+            capacity: newCapacity,
+            available: newCapacity > 0
+          }
+        });
+      }));
 
       return { session1, session2, session3 };
     });
