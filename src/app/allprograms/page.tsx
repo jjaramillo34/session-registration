@@ -2,6 +2,10 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { D79_PROGRAMS } from '@/lib/constants';
 
+function getProgramSlug(programName: string): string {
+  return programName.toLowerCase().replace(/\s+/g, '_');
+}
+
 export default function AllProgramsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-100 to-white dark:from-blue-900 dark:to-gray-900">
@@ -24,7 +28,7 @@ export default function AllProgramsPage() {
             {D79_PROGRAMS.map((program) => (
               <Link
                 key={program}
-                href={`/allprograms/${encodeURIComponent(program.toLowerCase().replace(/\s+/g, '_'))}`}
+                href={`/allprograms/${getProgramSlug(program)}`}
                 className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow"
               >
                 <h2 className="text-2xl font-bold text-blue-800 dark:text-blue-200 mb-2">

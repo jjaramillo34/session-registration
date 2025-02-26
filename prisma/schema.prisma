@@ -1,3 +1,6 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -25,21 +28,18 @@ model TimeSlot {
 }
 
 model Session {
-  id            Int      @id @default(autoincrement())
+  id            Int           @id @default(autoincrement())
   name          String
   email         String
   programName   String
   sessionDate   String
   sessionTime   String
   sessionType   String
-  teamsLink     String?  @default("")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  teamsLink     String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  registrations Registration[]
   signups       Signup[]
-
-  @@index([email])
-  @@index([sessionDate, sessionTime])
-  @@index([sessionType])
 }
 
 model Signup {
@@ -52,4 +52,76 @@ model Signup {
   updatedAt DateTime @updatedAt
 
   @@index([sessionId])
+}
+
+// New models for program registration
+model Registration {
+  id            Int               @id @default(autoincrement())
+  name          String
+  email         String
+  language      Language          @default(ENGLISH)
+  programName   String
+  agencyName    String?
+  isNYCPSStaff  Boolean          @default(false)
+  status        RegistrationStatus @default(CONFIRMED)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  session       Session           @relation(fields: [sessionId], references: [id])
+  sessionId     Int
+
+  @@index([email])
+  @@index([sessionId])
+}
+
+enum RegistrationStatus {
+  CONFIRMED
+  CANCELLED
+}
+
+enum Language {
+  ASL
+  ARABIC
+  BANGLA
+  CHINESE_MANDARIN
+  CHINESE_CANTONESE
+  ENGLISH
+  FRENCH
+  HAITIAN_CREOLE
+  KOREAN
+  RUSSIAN
+  SPANISH
+  URDU
+}
+
+model Crawl {
+  id            Int               @id @default(autoincrement())
+  name          String
+  location      String
+  address       String
+  date          String
+  time          String
+  capacity      Int              @default(10)
+  available     Boolean          @default(true)
+  coordinates   Float[]
+  description   String
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  registrations CrawlRegistration[]
+
+  @@index([date, time])
+  @@index([available])
+}
+
+model CrawlRegistration {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  crawl     Crawl    @relation(fields: [crawlId], references: [id])
+  crawlId   Int
+  status    RegistrationStatus @default(CONFIRMED)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([crawlId])
 } 

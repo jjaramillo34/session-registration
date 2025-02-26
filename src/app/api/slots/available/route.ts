@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 
-const DATES = ['2025-02-11', '2025-02-12', '2025-02-13'];
+const DATES = ['2025-02-26', '2025-02-27', '2025-02-28'];
 
 export async function GET() {
   try {

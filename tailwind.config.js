@@ -10,6 +10,11 @@ module.exports = {
     extend: {
       colors: {
         primary: '#0070f3',
+        'd79': {
+          blue: '#539be1',
+          light: '#7ab3e8',
+          dark: '#3a83c9',
+        }
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],

@@ -3,7 +3,7 @@ export const D79_PROGRAMS = [
   'Adult Education',
   'YABC',
   'Co-op Tech',
-  'Judit S. Kaye',
+  'Judith S. Kaye',
   'LYFE',
   'ALC',
   'ReSTART Academy',
@@ -13,9 +13,9 @@ export const D79_PROGRAMS = [
 ] as const;
 
 export const AVAILABLE_DATES = [
-  '2025-02-11', // Tuesday
-  '2025-02-12', // Wednesday
-  '2025-02-13'  // Thursday
+  '2025-02-26', // Wednesday
+  '2025-02-27', // Thursday
+  '2025-02-28'  // Friday
 ] as const;
 
 export const DAYTIME_SLOTS = [

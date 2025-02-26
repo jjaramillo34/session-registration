@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { CalendarCheck, Video, Heart } from 'lucide-react';
+import { CalendarCheck, Video, PersonStanding } from 'lucide-react';
 import { Instagram, Facebook, Twitter } from 'lucide-react';
 
 
@@ -32,7 +32,7 @@ export default function Home() {
           </div>
           <div className="relative w-24 h-24">
             <Image
-              src="/img/NYC logo.png"
+              src="/img/nycpublicshools-removebg-preview.png"
               alt="NYC Logo"
               fill
               className="object-contain"
@@ -45,7 +45,7 @@ export default function Home() {
           {/* Header */}
           <div className="space-y-4">
             <h2 className="text-2xl text-blue-700 dark:text-blue-300 font-bold">
-              FEBRUARY 10 - FEBRUARY 14, 2025
+              FEBRUARY 25 - FEBRUARY 28, 2025
             </h2>
             <div className="space-y-2">
               <h1 className="text-5xl font-bold text-blue-800 dark:text-blue-200">
@@ -55,7 +55,7 @@ export default function Home() {
                 TAKEOVER
               </h1>
               <h1 className="text-5xl font-bold text-blue-800 dark:text-blue-200">
-                WEEK
+                WEEK 
               </h1>
             </div>
           </div>
@@ -63,7 +63,7 @@ export default function Home() {
           {/* Main Content */}
           <div className="bg-blue-50/90 dark:bg-blue-900/80 p-8 rounded-xl shadow-lg space-y-6 backdrop-blur-sm">
             <h2 className="text-3xl font-bold text-blue-800 dark:text-blue-200">
-              JOIN US AS WE "TAKEOVER" NYC.
+              JOIN US AS WE "TAKEOVER" NYC
             </h2>
             
             <div className="space-y-4 text-lg text-blue-700 dark:text-blue-300">
@@ -80,30 +80,31 @@ export default function Home() {
 
             {/* Event Timeline */}
             <div className="mt-12 space-y-8">
+              
               {/* Kick Off Event */}
-              <div className="bg-white/90 dark:bg-gray-800/90 p-6 rounded-lg shadow-md backdrop-blur-sm">
+              {/* <div className="bg-white/90 dark:bg-gray-800/90 p-6 rounded-lg shadow-md backdrop-blur-sm">
                 <div className="flex items-center justify-center gap-4">
                   <CalendarCheck className="w-8 h-8 text-blue-600 dark:text-blue-400" />
                   <div>
                     <h3 className="text-2xl font-bold text-blue-800 dark:text-blue-200 mb-2">
-                      KICK OFF AT TWEED
+                      KICK OFF AT TWEED ROTUNDA 
                     </h3>
                     <p className="text-blue-700 dark:text-blue-300">
-                      FEBRUARY 10 2025- 10AM-1PM
+                      FEBRUARY 25 2025- 10AM-1PM
                     </p>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
               {/* Virtual Sessions and District Crawls side by side */}
               <div className="grid md:grid-cols-2 gap-8">
                 {/* Virtual Sessions - for now change to home page / register */}
-                <Link href="/">
+                <Link href="/allprograms">
                   <div className="bg-gradient-to-br from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 p-8 rounded-2xl shadow-lg transform hover:scale-105 transition-all duration-300 text-white group">
                     <div className="text-center space-y-4">
                       <Video className="w-12 h-12 mx-auto mb-2 transform group-hover:scale-110 transition-transform duration-300" />
                       <h3 className="text-2xl font-bold mb-2">
-                        FEBRUARY 11 - 13, 2025
+                        FEBRUARY 26 - 28, 2025
                       </h3>
                       <div className="space-y-2">
                         <p className="text-lg">
@@ -112,26 +113,32 @@ export default function Home() {
                         <p className="text-xl font-bold">
                           VIRTUAL SESSIONS
                         </p>
+                        <span className="text-xs text-white/80">
+                          ( NYCPS Staff & Community Members )
+                        </span>
                       </div>
                     </div>
                   </div>
                 </Link>
 
                 {/* District Crawls */}
-                <Link href="/">
+                <Link href="/crawls">
                   <div className="bg-gradient-to-br from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 p-8 rounded-2xl shadow-lg transform hover:scale-105 transition-all duration-300 text-white group">
                     <div className="text-center space-y-4">
-                      <Heart className="w-12 h-12 mx-auto mb-2 transform group-hover:scale-110 transition-transform duration-300" />
+                      <PersonStanding className="w-12 h-12 mx-auto mb-2 transform group-hover:scale-110 transition-transform duration-300" />
                       <h3 className="text-2xl font-bold mb-2">
-                        FEBRUARY 14, 2025
+                        FEBRUARY 28, 2025
                       </h3>
                       <div className="space-y-2">
                         <p className="text-xl font-bold">
                           DISTRICT 79
                         </p>
                         <p className="text-xl font-bold">
-                          CRAWLS!
+                          SITE CRAWLS!
                         </p>
+                        <span className="text-sm text-white/90">
+                          ( NYCPS Staff Only )
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -142,7 +149,7 @@ export default function Home() {
             {/* Call to Action */}
             <div className="mt-8">
               <Link
-                href="/"
+                href="/allprograms"
                 className="inline-block px-8 py-4 text-xl font-bold text-white bg-blue-600 rounded-full hover:bg-blue-700 transition-colors duration-200 shadow-lg hover:shadow-xl"
               >
                 Register Now
