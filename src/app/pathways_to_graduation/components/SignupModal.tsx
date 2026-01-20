@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Session } from '@prisma/client';
+import { Session } from '@/types/session';
 import { useForm } from 'react-hook-form';
 
 interface SignupModalProps {
@@ -39,7 +39,7 @@ export default function SignupModal({ isOpen, onClose, session }: SignupModalPro
         },
         body: JSON.stringify({
           ...data,
-          sessionId: session.id
+          sessionId: session._id.toString()
         }),
       });
 

@@ -1,28 +1,35 @@
-import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
+import connectDB from '@/lib/mongodb';
+import Crawl from '@/models/Crawl';
+import CrawlRegistration from '@/models/CrawlRegistration';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export async function GET() {
   try {
-    const crawls = await prisma.crawl.findMany({
-      where: {
-        available: true,
-      },
-      include: {
-        _count: {
-          select: {
-            registrations: true
-          }
-        }
-      },
-      orderBy: [
-        { name: 'asc' }
-      ]
-    });
+    await connectDB();
+    const crawls = await Crawl.find({ available: true })
+      .sort({ name: 1 })
+      .lean();
 
-    return NextResponse.json(crawls);
+    // Get registration counts for each crawl
+    const crawlsWithCounts = await Promise.all(
+      crawls.map(async (crawl) => {
+        const count = await CrawlRegistration.countDocuments({
+          crawlId: crawl._id,
+          status: 'CONFIRMED'
+        });
+        return {
+          ...crawl,
+          _count: {
+            registrations: count
+          }
+        };
+      })
+    );
+
+    return NextResponse.json(crawlsWithCounts);
   } catch (error) {
     console.error('Failed to fetch crawls:', error);
     return NextResponse.json(

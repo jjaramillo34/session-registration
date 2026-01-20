@@ -8,7 +8,7 @@ export default function Footer() {
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-gray-600 dark:text-gray-400">
-            © 2025 District 79. All rights reserved.
+            © {new Date().getFullYear()} District 79. All rights reserved.
           </div>
           <div className="flex flex-col md:flex-row items-center gap-6">
             <a

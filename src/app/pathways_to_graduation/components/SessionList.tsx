@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Session } from '@prisma/client';
+import { Session } from '@/types/session';
 import SignupModal from './SignupModal';
 
 interface SessionListProps {
@@ -30,7 +30,7 @@ export default function SessionList({ sessions }: SessionListProps) {
         <div className="grid gap-4 md:grid-cols-2">
           {daytimeSessions.map((session) => (
             <div
-              key={session.id}
+              key={session._id.toString()}
               className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700"
             >
               <div className="mb-4">
@@ -60,7 +60,7 @@ export default function SessionList({ sessions }: SessionListProps) {
         <div className="grid gap-4 md:grid-cols-2">
           {eveningSessions.map((session) => (
             <div
-              key={session.id}
+              key={session._id.toString()}
               className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700"
             >
               <div className="mb-4">

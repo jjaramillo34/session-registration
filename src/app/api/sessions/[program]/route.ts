@@ -1,61 +1,57 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { D79_PROGRAMS } from '@/lib/constants';
+import connectDB from '@/lib/mongodb';
+import Session from '@/models/Session';
+import mongoose from 'mongoose';
 
 export async function GET(
   request: Request,
-  { params }: { params: { program: string } }
+  { params }: { params: Promise<{ program: string }> | { program: string } }
 ) {
   try {
-    // Convert URL-friendly format back to program name
-    const programSlug = params.program.toLowerCase();
-    let programName = '';
-
-    // Handle special cases and acronyms
-    const programMapping: Record<string, string> = {
-      'co_op_tech': 'Co-op Tech',
-      'pathways_to_graduation': 'Pathways to Graduation',
-      'yabc': 'YABC',
-      'lyfe': 'LYFE',
-      'alc': 'ALC',
-      'restart_academy': 'ReSTART Academy',
-      'east_river_academy': 'East River Academy',
-      'passages': 'Passages',
-      'adult_education': 'Adult Education',
-      'judith_s_kaye': 'Judith S. Kaye High School',
-      'other': 'Other'
-    };
-
-    // Get program name from mapping or convert from slug
-    programName = programMapping[programSlug] || programSlug
-      .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
-
-    // Verify it's a valid program name
-    if (!D79_PROGRAMS.includes(programName as any)) {
+    await connectDB();
+    
+    // Handle Next.js 16 async params
+    const resolvedParams = await Promise.resolve(params);
+    const programId = resolvedParams.program;
+    
+    // Check if the program parameter is a valid MongoDB ObjectId
+    const isObjectId = mongoose.Types.ObjectId.isValid(programId);
+    
+    if (!isObjectId) {
+      console.error(`Invalid ObjectId format: ${programId}`);
       return NextResponse.json(
-        { message: `Invalid program name: ${programName}` },
+        { message: 'Invalid program ID format' },
         { status: 400 }
       );
     }
 
-    // Fetch sessions for the program
-    const sessions = await prisma.session.findMany({
-      where: {
-        programName: {
-          equals: programName,
-          mode: 'insensitive'
-        }
-      },
-      orderBy: [
-        { sessionDate: 'asc' },
-        { sessionTime: 'asc' }
-      ]
-    });
+    // Find the session by _id to get the program name
+    const referenceSession = await Session.findById(programId).lean();
+    
+    if (!referenceSession) {
+      return NextResponse.json(
+        { message: 'Program not found' },
+        { status: 404 }
+      );
+    }
+
+    const programName = referenceSession.programName;
+
+    // Fetch all sessions for the same program (case-insensitive)
+    const sessions = await Session.find({
+      programName: { $regex: new RegExp(`^${programName}$`, 'i') }
+    })
+      .sort({ sessionDate: 1, sessionTime: 1 })
+      .lean();
+
+    // Convert MongoDB _id to string for JSON serialization
+    const sessionsWithStringIds = sessions.map(session => ({
+      ...session,
+      _id: session._id.toString(),
+    }));
 
     console.log(`Found ${sessions.length} sessions for program: ${programName}`);
-    return NextResponse.json(sessions);
+    return NextResponse.json(sessionsWithStringIds);
   } catch (error) {
     console.error('Error fetching sessions:', error);
     return NextResponse.json(

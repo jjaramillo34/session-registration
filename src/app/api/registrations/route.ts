@@ -1,36 +1,35 @@
-import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
+import connectDB from '@/lib/mongodb';
+import Registration from '@/models/Registration';
+import Session from '@/models/Session';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export async function GET() {
   try {
-    const registrations = await prisma.registration.findMany({
-      include: {
-        session: {
-          select: {
-            sessionDate: true,
-            sessionTime: true,
-            sessionType: true,
-          },
-        },
-      },
-      orderBy: [
-        {
-          session: {
-            sessionDate: 'desc',
-          },
-        },
-        {
-          session: {
-            sessionTime: 'asc',
-          },
-        },
-      ],
-    });
+    await connectDB();
+    const registrations = await Registration.find()
+      .sort({ createdAt: -1 })
+      .lean();
 
-    return NextResponse.json(registrations);
+    // Transform to include sessionId as string and ensure all fields are present
+    const transformedRegistrations = registrations.map(reg => ({
+      _id: reg._id.toString(),
+      name: reg.name,
+      email: reg.email,
+      language: reg.language,
+      programName: reg.programName,
+      agencyName: reg.agencyName || null,
+      isNYCPSStaff: reg.isNYCPSStaff || false,
+      status: reg.status,
+      sessionId: reg.sessionId ? reg.sessionId.toString() : null,
+      emailSent: reg.emailSent || false,
+      createdAt: reg.createdAt ? reg.createdAt.toISOString() : new Date().toISOString(),
+      updatedAt: reg.updatedAt ? reg.updatedAt.toISOString() : new Date().toISOString(),
+    }));
+
+    return NextResponse.json(transformedRegistrations);
   } catch (error) {
     console.error('Failed to fetch registrations:', error);
     return NextResponse.json(

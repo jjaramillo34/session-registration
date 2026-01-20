@@ -1,21 +1,17 @@
-import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
+import connectDB from '@/lib/mongodb';
+import TimeSlot from '@/models/TimeSlot';
 
 const DATES = ['2025-02-26', '2025-02-27', '2025-02-28'];
 
 export async function GET() {
   try {
-    const slots = await prisma.timeSlot.findMany({
-      where: {
-        date: {
-          in: DATES
-        }
-      },
-      orderBy: [
-        { date: 'asc' },
-        { time: 'asc' }
-      ]
-    });
+    await connectDB();
+    const slots = await TimeSlot.find({
+      date: { $in: DATES }
+    })
+      .sort({ date: 1, time: 1 })
+      .lean();
 
     const totalSlots = slots.length;
     const availableSlots = slots.filter(slot => slot.available).length;

@@ -1,17 +1,15 @@
-import { prisma } from '@/lib/prisma';
+import connectDB from '@/lib/mongodb';
+import Session from '@/models/Session';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
 async function getPathwaysSessions() {
-  const sessions = await prisma.session.findMany({
-    where: {
-      programName: 'Pathways to Graduation'
-    },
-    orderBy: [
-      { sessionDate: 'asc' },
-      { sessionTime: 'asc' }
-    ]
-  });
+  await connectDB();
+  const sessions = await Session.find({
+    programName: 'Pathways to Graduation'
+  })
+    .sort({ sessionDate: 1, sessionTime: 1 })
+    .lean();
   return sessions;
 }
 
@@ -47,7 +45,7 @@ export default async function PathwaysToGraduationPage() {
                     .filter(session => session.sessionType === 'daytime')
                     .map(session => (
                       <div
-                        key={session.id}
+                        key={session._id.toString()}
                         className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg"
                       >
                         <div className="flex justify-between items-center">
@@ -75,7 +73,7 @@ export default async function PathwaysToGraduationPage() {
                     .filter(session => session.sessionType === 'evening')
                     .map(session => (
                       <div
-                        key={session.id}
+                        key={session._id.toString()}
                         className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg"
                       >
                         <div className="flex justify-between items-center">

@@ -1,10 +1,59 @@
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
-import { CalendarCheck, Video, PersonStanding } from 'lucide-react';
+import { CalendarCheck, Video, PersonStanding, Users, Clock, Calendar, ArrowRight, Sparkles, Settings } from 'lucide-react';
 import { Instagram, Facebook, Twitter } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
+
+interface Program {
+  _id: string;
+  name: string;
+}
 
 export default function Home() {
+  const [timeRemaining, setTimeRemaining] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0
+  });
+
+  // Fetch programs for statistics
+  const { data: programs } = useQuery<Program[]>({
+    queryKey: ['programs'],
+    queryFn: async () => {
+      const response = await fetch('/api/programs');
+      if (!response.ok) throw new Error('Failed to fetch programs');
+      return response.json();
+    },
+  });
+
+  // Countdown timer
+  useEffect(() => {
+    const eventDate = new Date('2026-02-23T00:00:00').getTime();
+    
+    const updateTimer = () => {
+      const now = new Date().getTime();
+      const distance = eventDate - now;
+
+      if (distance > 0) {
+        setTimeRemaining({
+          days: Math.floor(distance / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+          minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
+          seconds: Math.floor((distance % (1000 * 60)) / 1000)
+        });
+      }
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-100 to-white dark:from-blue-900 dark:to-gray-900 relative overflow-hidden">
       {/* Asterisk Background Pattern */}
@@ -41,41 +90,95 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="max-w-4xl mx-auto text-center space-y-8">
+        <div className="max-w-6xl mx-auto text-center space-y-8">
           {/* Header */}
-          <div className="space-y-4">
-            <h2 className="text-2xl text-blue-700 dark:text-blue-300 font-bold">
-              FEBRUARY 25 - FEBRUARY 28, 2025
-            </h2>
+          <div className="space-y-6 animate-fade-in">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-semibold">
+              <Sparkles className="w-4 h-4" />
+              <span>FEBRUARY 23 - FEBRUARY 26, 2026</span>
+            </div>
             <div className="space-y-2">
-              <h1 className="text-5xl font-bold text-blue-800 dark:text-blue-200">
+              <h1 className="text-6xl md:text-7xl font-bold text-blue-800 dark:text-blue-200 tracking-tight">
                 DISTRICT 79
               </h1>
-              <h1 className="text-5xl font-bold text-blue-800 dark:text-blue-200">
+              <h1 className="text-6xl md:text-7xl font-bold text-blue-800 dark:text-blue-200 tracking-tight">
                 TAKEOVER
               </h1>
-              <h1 className="text-5xl font-bold text-blue-800 dark:text-blue-200">
+              <h1 className="text-6xl md:text-7xl font-bold text-blue-800 dark:text-blue-200 tracking-tight">
                 WEEK 
               </h1>
             </div>
+            
+            {/* Countdown Timer */}
+            <div className="flex justify-center gap-4 mt-8">
+              {timeRemaining.days > 0 && (
+                <div className="bg-white dark:bg-gray-800 rounded-lg px-6 py-4 shadow-lg">
+                  <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{timeRemaining.days}</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 uppercase">Days</div>
+                </div>
+              )}
+              <div className="bg-white dark:bg-gray-800 rounded-lg px-6 py-4 shadow-lg">
+                <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{timeRemaining.hours}</div>
+                <div className="text-xs text-gray-600 dark:text-gray-400 uppercase">Hours</div>
+              </div>
+              <div className="bg-white dark:bg-gray-800 rounded-lg px-6 py-4 shadow-lg">
+                <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{timeRemaining.minutes}</div>
+                <div className="text-xs text-gray-600 dark:text-gray-400 uppercase">Minutes</div>
+              </div>
+              <div className="bg-white dark:bg-gray-800 rounded-lg px-6 py-4 shadow-lg">
+                <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{timeRemaining.seconds}</div>
+                <div className="text-xs text-gray-600 dark:text-gray-400 uppercase">Seconds</div>
+              </div>
+            </div>
           </div>
 
+          {/* Statistics Section */}
+          {programs && programs.length > 0 && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border-2 border-blue-200 dark:border-blue-800">
+                <Users className="w-8 h-8 text-blue-600 dark:text-blue-400 mx-auto mb-2" />
+                <div className="text-3xl font-bold text-blue-800 dark:text-blue-200">{programs.length}</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Programs</div>
+              </div>
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border-2 border-blue-200 dark:border-blue-800">
+                <Video className="w-8 h-8 text-blue-600 dark:text-blue-400 mx-auto mb-2" />
+                <div className="text-3xl font-bold text-blue-800 dark:text-blue-200">16</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Sessions</div>
+              </div>
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border-2 border-blue-200 dark:border-blue-800">
+                <Clock className="w-8 h-8 text-blue-600 dark:text-blue-400 mx-auto mb-2" />
+                <div className="text-3xl font-bold text-blue-800 dark:text-blue-200">4</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Days</div>
+              </div>
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border-2 border-blue-200 dark:border-blue-800">
+                <Calendar className="w-8 h-8 text-blue-600 dark:text-blue-400 mx-auto mb-2" />
+                <div className="text-3xl font-bold text-blue-800 dark:text-blue-200">8</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Evening</div>
+              </div>
+            </div>
+          )}
+
           {/* Main Content */}
-          <div className="bg-blue-50/90 dark:bg-blue-900/80 p-8 rounded-xl shadow-lg space-y-6 backdrop-blur-sm">
-            <h2 className="text-3xl font-bold text-blue-800 dark:text-blue-200">
-              JOIN US AS WE "TAKEOVER" NYC
-            </h2>
-            
-            <div className="space-y-4 text-lg text-blue-700 dark:text-blue-300">
-              <p className="font-semibold">
-                LEARN MORE ABOUT THE OPPORTUNITIES WITHIN D79!
-              </p>
-              <p className="font-semibold">
-                OPEN TO NYCPS EMPLOYEES!
-              </p>
-              <p className="font-semibold">
-                SPECIAL EVENING SESSIONS AVAILABLE FOR COMMUNITY MEMBERS!
-              </p>
+          <div className="bg-blue-50/90 dark:bg-blue-900/80 p-8 md:p-12 rounded-2xl shadow-xl space-y-8 backdrop-blur-sm border-2 border-blue-200 dark:border-blue-800">
+            <div className="space-y-4">
+              <h2 className="text-4xl md:text-5xl font-bold text-blue-800 dark:text-blue-200">
+                JOIN US AS WE "TAKEOVER" NYC
+              </h2>
+              
+              <div className="space-y-3 text-lg md:text-xl text-blue-700 dark:text-blue-300">
+                <p className="font-semibold flex items-center justify-center gap-2">
+                  <Sparkles className="w-5 h-5" />
+                  LEARN MORE ABOUT THE OPPORTUNITIES WITHIN D79!
+                </p>
+                <p className="font-semibold flex items-center justify-center gap-2">
+                  <Users className="w-5 h-5" />
+                  OPEN TO NYCPS EMPLOYEES!
+                </p>
+                <p className="font-semibold flex items-center justify-center gap-2">
+                  <Video className="w-5 h-5" />
+                  SPECIAL EVENING SESSIONS AVAILABLE FOR COMMUNITY MEMBERS!
+                </p>
+              </div>
             </div>
 
             {/* Event Timeline */}
@@ -97,48 +200,60 @@ export default function Home() {
               </div> */}
 
               {/* Virtual Sessions and District Crawls side by side */}
-              <div className="grid md:grid-cols-2 gap-8">
-                {/* Virtual Sessions - for now change to home page / register */}
-                <Link href="/allprograms">
-                  <div className="bg-gradient-to-br from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 p-8 rounded-2xl shadow-lg transform hover:scale-105 transition-all duration-300 text-white group">
-                    <div className="text-center space-y-4">
-                      <Video className="w-12 h-12 mx-auto mb-2 transform group-hover:scale-110 transition-transform duration-300" />
-                      <h3 className="text-2xl font-bold mb-2">
-                        FEBRUARY 26 - 28, 2025
+              <div className="grid md:grid-cols-2 gap-6 md:gap-8">
+                {/* Virtual Sessions */}
+                <Link href="/allprograms" className="group">
+                  <div className="bg-gradient-to-br from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 p-8 md:p-10 rounded-2xl shadow-xl transform hover:scale-105 hover:shadow-2xl transition-all duration-300 text-white relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500"></div>
+                    <div className="text-center space-y-4 relative z-10">
+                      <Video className="w-14 h-14 mx-auto mb-2 transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-300" />
+                      <h3 className="text-xl md:text-2xl font-bold mb-2">
+                        FEBRUARY 23 - 26, 2026
                       </h3>
                       <div className="space-y-2">
-                        <p className="text-lg">
+                        <p className="text-lg font-semibold">
                           D79 PROGRAM
                         </p>
-                        <p className="text-xl font-bold">
+                        <p className="text-2xl md:text-3xl font-bold">
                           VIRTUAL SESSIONS
                         </p>
-                        <span className="text-xs text-white/80">
-                          ( NYCPS Staff & Community Members )
-                        </span>
+                        <div className="pt-2">
+                          <span className="inline-block text-xs bg-white/20 px-3 py-1 rounded-full">
+                            NYCPS Staff & Community Members
+                          </span>
+                        </div>
+                      </div>
+                      <div className="pt-4 flex items-center justify-center gap-2 text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
+                        Register Now <ArrowRight className="w-4 h-4" />
                       </div>
                     </div>
                   </div>
                 </Link>
 
                 {/* District Crawls */}
-                <Link href="/crawls">
-                  <div className="bg-gradient-to-br from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 p-8 rounded-2xl shadow-lg transform hover:scale-105 transition-all duration-300 text-white group">
-                    <div className="text-center space-y-4">
-                      <PersonStanding className="w-12 h-12 mx-auto mb-2 transform group-hover:scale-110 transition-transform duration-300" />
-                      <h3 className="text-2xl font-bold mb-2">
-                        FEBRUARY 28, 2025
+                <Link href="/crawls" className="group">
+                  <div className="bg-gradient-to-br from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 p-8 md:p-10 rounded-2xl shadow-xl transform hover:scale-105 hover:shadow-2xl transition-all duration-300 text-white relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500"></div>
+                    <div className="text-center space-y-4 relative z-10">
+                      <PersonStanding className="w-14 h-14 mx-auto mb-2 transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-300" />
+                      <h3 className="text-xl md:text-2xl font-bold mb-2">
+                        FEBRUARY 24, 2026
                       </h3>
                       <div className="space-y-2">
-                        <p className="text-xl font-bold">
+                        <p className="text-2xl md:text-3xl font-bold">
                           DISTRICT 79
                         </p>
-                        <p className="text-xl font-bold">
+                        <p className="text-2xl md:text-3xl font-bold">
                           SITE CRAWLS!
                         </p>
-                        <span className="text-sm text-white/90">
-                          ( NYCPS Staff Only )
-                        </span>
+                        <div className="pt-2">
+                          <span className="inline-block text-xs bg-white/20 px-3 py-1 rounded-full">
+                            NYCPS Staff Only
+                          </span>
+                        </div>
+                      </div>
+                      <div className="pt-4 flex items-center justify-center gap-2 text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
+                        Explore Crawls <ArrowRight className="w-4 h-4" />
                       </div>
                     </div>
                   </div>
@@ -147,12 +262,39 @@ export default function Home() {
             </div>
 
             {/* Call to Action */}
-            <div className="mt-8">
+            <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link
                 href="/allprograms"
-                className="inline-block px-8 py-4 text-xl font-bold text-white bg-blue-600 rounded-full hover:bg-blue-700 transition-colors duration-200 shadow-lg hover:shadow-xl"
+                className="group inline-flex items-center gap-3 px-8 py-4 text-xl font-bold text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-full hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-2xl transform hover:scale-105"
               >
-                Register Now
+                Register for Sessions
+                <ArrowRight className="w-5 h-5 transform group-hover:translate-x-1 transition-transform" />
+              </Link>
+              <Link
+                href="/meetings"
+                className="group inline-flex items-center gap-3 px-8 py-4 text-xl font-bold text-white bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-2xl transform hover:scale-105"
+              >
+                <Video className="w-5 h-5" />
+                View All Meetings
+                <ArrowRight className="w-5 h-5 transform group-hover:translate-x-1 transition-transform" />
+              </Link>
+              <Link
+                href="/crawls"
+                className="group inline-flex items-center gap-3 px-8 py-4 text-xl font-bold text-blue-700 dark:text-blue-300 bg-white dark:bg-gray-800 rounded-full hover:bg-blue-50 dark:hover:bg-gray-700 transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-blue-600 dark:border-blue-400"
+              >
+                View Site Crawls
+                <ArrowRight className="w-5 h-5 transform group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
+            
+            {/* Admin Link (for staff) */}
+            <div className="mt-6 text-center">
+              <Link
+                href="/admin"
+                className="inline-flex items-center gap-2 px-6 py-2 text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              >
+                <Settings className="w-4 h-4" />
+                Admin Dashboard
               </Link>
             </div>
           </div>

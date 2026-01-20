@@ -1,19 +1,13 @@
-import { PrismaClient } from '@prisma/client';
 import { NextResponse } from 'next/server';
-
-const prisma = new PrismaClient();
+import connectDB from '@/lib/mongodb';
+import TimeSlot from '@/models/TimeSlot';
 
 export async function GET() {
   try {
-    const availableSlots = await prisma.timeSlot.findMany({
-      where: {
-        available: true
-      },
-      orderBy: [
-        { date: 'asc' },
-        { time: 'asc' }
-      ]
-    });
+    await connectDB();
+    const availableSlots = await TimeSlot.find({ available: true })
+      .sort({ date: 1, time: 1 })
+      .lean();
 
     return NextResponse.json(availableSlots);
   } catch (error) {

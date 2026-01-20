@@ -2,13 +2,11 @@ export const D79_PROGRAMS = [
   'Pathways to Graduation',
   'Adult Education',
   'YABC',
-  'Co-op Tech',
-  'Judith S. Kaye',
+  'Co-op Tech & Judith S. Kaye',
   'LYFE',
   'ALC',
   'ReSTART Academy',
-  'East River Academy',
-  'Passages',
+  'East River Academy & Passages',
   'Other'
 ] as const;
 

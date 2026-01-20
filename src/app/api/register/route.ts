@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import connectDB from '@/lib/mongodb';
+import Session from '@/models/Session';
+import Registration from '@/models/Registration';
+import mongoose from 'mongoose';
 
 export async function POST(request: Request) {
   try {
+    await connectDB();
     const body = await request.json();
     const { name, email, language, programName, timeSlotId, isNYCPSStaff, agencyName } = body;
 
@@ -23,10 +27,13 @@ export async function POST(request: Request) {
       );
     }
 
+    // Convert timeSlotId to ObjectId if it's a string
+    const sessionId = mongoose.Types.ObjectId.isValid(timeSlotId) 
+      ? new mongoose.Types.ObjectId(timeSlotId) 
+      : timeSlotId;
+
     // Get the session
-    const session = await prisma.session.findUnique({
-      where: { id: timeSlotId },
-    });
+    const session = await Session.findById(sessionId);
 
     if (!session) {
       return NextResponse.json(
@@ -35,12 +42,25 @@ export async function POST(request: Request) {
       );
     }
 
+    // Check if session is at capacity
+    const registrationCount = await Registration.countDocuments({
+      sessionId: sessionId,
+      status: 'CONFIRMED'
+    });
+
+    const sessionCapacity = session.capacity || 16; // Default to 16 if not set
+
+    if (registrationCount >= sessionCapacity) {
+      return NextResponse.json(
+        { message: 'This session is at full capacity' },
+        { status: 400 }
+      );
+    }
+
     // Check if user is already registered for this session
-    const existingRegistration = await prisma.registration.findFirst({
-      where: {
-        email,
-        sessionId: timeSlotId,
-      },
+    const existingRegistration = await Registration.findOne({
+      email,
+      sessionId: sessionId,
     });
 
     if (existingRegistration) {
@@ -51,16 +71,14 @@ export async function POST(request: Request) {
     }
 
     // Create the registration
-    const registration = await prisma.registration.create({
-      data: {
-        name,
-        email,
-        language: language || 'ENGLISH',
-        programName,
-        agencyName,
-        isNYCPSStaff,
-        sessionId: timeSlotId,
-      },
+    const registration = await Registration.create({
+      name,
+      email,
+      language: language || 'ENGLISH',
+      programName,
+      agencyName,
+      isNYCPSStaff,
+      sessionId: sessionId,
     });
 
     return NextResponse.json({

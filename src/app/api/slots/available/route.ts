@@ -1,29 +1,23 @@
-import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
+import connectDB from '@/lib/mongodb';
+import TimeSlot from '@/models/TimeSlot';
 
 const DATES = ['2025-02-26', '2025-02-27', '2025-02-28'];
 
 export async function GET() {
   try {
+    await connectDB();
     console.log('Fetching available slots for dates:', DATES);
     
     // Only fetch slots that are both available=true and have capacity>0
-    const slots = await prisma.timeSlot.findMany({
-      where: {
-        date: {
-          in: DATES
-        },
-        AND: [
-          { available: true },
-          { capacity: { gt: 0 } }
-        ]
-      },
-      orderBy: [
-        { date: 'asc' },
-        { time: 'asc' }
-      ]
-    });
+    const slots = await TimeSlot.find({
+      date: { $in: DATES },
+      available: true,
+      capacity: { $gt: 0 }
+    })
+      .sort({ date: 1, time: 1 })
+      .lean();
 
     console.log('\nAvailable slots with capacity:');
     for (const slot of slots) {

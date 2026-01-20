@@ -1,8 +1,12 @@
-import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
+import connectDB from '@/lib/mongodb';
+import Crawl from '@/models/Crawl';
+import CrawlRegistration from '@/models/CrawlRegistration';
+import mongoose from 'mongoose';
 
 export async function POST(request: Request) {
   try {
+    await connectDB();
     const body = await request.json();
     const { name, email, crawlId } = body;
 
@@ -22,10 +26,13 @@ export async function POST(request: Request) {
       );
     }
 
+    // Convert crawlId to ObjectId if it's a string
+    const crawlObjectId = mongoose.Types.ObjectId.isValid(crawlId) 
+      ? new mongoose.Types.ObjectId(crawlId) 
+      : crawlId;
+
     // Get the crawl
-    const crawl = await prisma.crawl.findUnique({
-      where: { id: crawlId },
-    });
+    const crawl = await Crawl.findById(crawlObjectId);
 
     if (!crawl) {
       return NextResponse.json(
@@ -35,11 +42,9 @@ export async function POST(request: Request) {
     }
 
     // Check if crawl is full
-    const registrationCount = await prisma.crawlRegistration.count({
-      where: {
-        crawlId,
-        status: 'CONFIRMED'
-      }
+    const registrationCount = await CrawlRegistration.countDocuments({
+      crawlId: crawlObjectId,
+      status: 'CONFIRMED'
     });
 
     if (registrationCount >= crawl.capacity) {
@@ -50,11 +55,9 @@ export async function POST(request: Request) {
     }
 
     // Check if user is already registered for this crawl
-    const existingRegistration = await prisma.crawlRegistration.findFirst({
-      where: {
-        email,
-        crawlId,
-      },
+    const existingRegistration = await CrawlRegistration.findOne({
+      email: email.toLowerCase(),
+      crawlId: crawlObjectId,
     });
 
     if (existingRegistration) {
@@ -65,23 +68,18 @@ export async function POST(request: Request) {
     }
 
     // Create the registration
-    const registration = await prisma.crawlRegistration.create({
-      data: {
-        name,
-        email: email.toLowerCase(),
-        crawlId,
-      },
-      include: {
-        crawl: true,
-      },
+    const registration = await CrawlRegistration.create({
+      name,
+      email: email.toLowerCase(),
+      crawlId: crawlObjectId,
     });
+
+    // Populate crawl
+    await registration.populate('crawlId');
 
     // Update crawl availability if at capacity
     if (registrationCount + 1 >= crawl.capacity) {
-      await prisma.crawl.update({
-        where: { id: crawlId },
-        data: { available: false },
-      });
+      await Crawl.findByIdAndUpdate(crawlObjectId, { available: false });
     }
 
     return NextResponse.json({

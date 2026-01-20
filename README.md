@@ -12,9 +12,10 @@ A Next.js application for managing D79 session registrations.
 
 ## Tech Stack
 
-- Next.js 14
+- Next.js 16
+- React 19
 - TypeScript
-- Prisma with PostgreSQL
+- MongoDB with Mongoose
 - Tailwind CSS
 - React Hook Form
 
@@ -26,16 +27,29 @@ A Next.js application for managing D79 session registrations.
    npm install
    ```
 3. Set up environment variables:
-   Create a `.env` file with the following variables:
+   Create a `.env.local` file with the following variables:
    ```
-   DATABASE_URL="your-database-url"
-   DIRECT_URL="your-direct-database-url"
+   MONGODB_URI="your-mongodb-connection-string"
+   ```
+   
+   Example MongoDB connection string format:
+   ```
+   MONGODB_URI="mongodb+srv://username:password@cluster.mongodb.net/database-name?retryWrites=true&w=majority"
+   ```
+   Or for local MongoDB:
+   ```
+   MONGODB_URI="mongodb://localhost:27017/session-registration"
    ```
 
-4. Run database migrations:
+4. Seed the database (optional):
    ```bash
-   npx prisma migrate deploy
+   # Seed sessions
+   npm run seed:sessions
+   # Seed admin users
+   npm run seed:users
    ```
+   - `seed:sessions`: Populates the database with the D79 Week Virtual Sessions schedule
+   - `seed:users`: Creates admin users (Javier Jaramillo and Stacey Oliger)
 
 5. Start the development server:
    ```bash
@@ -49,14 +63,13 @@ A Next.js application for managing D79 session registrations.
 2. Import the project in Vercel
 
 3. Configure the following environment variables in Vercel:
-   - `DATABASE_URL`: Your Prisma database connection string
-   - `DIRECT_URL`: Your direct database connection URL
+   - `MONGODB_URI`: Your MongoDB connection string
 
 4. Deploy!
 
 ## Database Schema
 
-The application uses two main models:
+The application uses MongoDB with the following collections:
 
 ### TimeSlot
 - Manages available session slots
@@ -68,6 +81,20 @@ The application uses two main models:
 - Includes participant details and Teams meeting links
 - Indexed for optimal query performance
 
+### Registration
+- Stores user registrations for sessions
+- Includes language preferences and agency information
+
+### Signup
+- Tracks signups for Pathways to Graduation sessions
+
+### Crawl
+- Manages school crawl events
+- Includes location and capacity information
+
+### CrawlRegistration
+- Stores registrations for crawl events
+
 ## Development
 
 - `npm run dev`: Start development server
@@ -75,3 +102,5 @@ The application uses two main models:
 - `npm run start`: Start production server
 - `npm run lint`: Run linter
 - `npm run lint:fix`: Fix linting issues
+- `npm run seed:sessions`: Seed database with D79 Week Virtual Sessions schedule
+- `npm run seed:users`: Create admin users for the admin dashboard
