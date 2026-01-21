@@ -1,6 +1,17 @@
+// Register path aliases before any imports
+import { register } from 'tsconfig-paths';
+import { resolve } from 'path';
+
+const baseUrl = resolve(__dirname, '..');
+register({
+  baseUrl,
+  paths: {
+    '@/*': ['src/*'],
+  },
+});
+
 import mongoose from 'mongoose';
 import { config } from 'dotenv';
-import { resolve } from 'path';
 import User from '../src/models/User';
 
 // Load environment variables from .env.local
@@ -20,7 +31,9 @@ async function seedUsers() {
       {
         name: 'Javier Jaramillo',
         email: 'jjaramillo7@schools.nyc.gov',
-        password: 'D79Admin2026!', // Change this to a secure password
+        // Delete this line and uncomment the line below to use a secure password
+        // password: 'D79Admin2026!', // Change this to a secure password
+        password: 'password',
         role: 'admin' as const,
       },
       {

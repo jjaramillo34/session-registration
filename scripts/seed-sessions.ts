@@ -1,6 +1,17 @@
+// Register path aliases before any imports
+import { register } from 'tsconfig-paths';
+import { resolve } from 'path';
+
+const baseUrl = resolve(__dirname, '..');
+register({
+  baseUrl,
+  paths: {
+    '@/*': ['src/*'],
+  },
+});
+
 import mongoose from 'mongoose';
 import { config } from 'dotenv';
-import { resolve } from 'path';
 import Session from '../src/models/Session';
 
 // Load environment variables from .env.local
