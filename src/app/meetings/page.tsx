@@ -1,11 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { formatDate, formatTime } from '@/lib/utils';
 import Link from 'next/link';
-import { ArrowLeft, Calendar, Clock, Video, Users, Sun, Moon, ExternalLink, MessageSquare } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, Video, Users, Sun, Moon, ExternalLink, MessageSquare, QrCode, X } from 'lucide-react';
 import Image from 'next/image';
 import { MeetingType } from '@/types/session';
+import { QRCodeSVG } from 'qrcode.react';
 
 interface Meeting {
   _id: string;
@@ -19,6 +21,8 @@ interface Meeting {
 }
 
 export default function MeetingsPage() {
+  const [selectedQRCode, setSelectedQRCode] = useState<string | null>(null);
+
   const { data: meetings, isLoading, error } = useQuery<Meeting[]>({
     queryKey: ['meetings'],
     queryFn: async () => {
@@ -238,16 +242,25 @@ export default function MeetingsPage() {
                           </div>
                         </div>
 
-                        <a
-                          href={meeting.meetingLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={`w-full px-4 py-3 text-sm font-semibold text-white bg-gradient-to-r ${getMeetingButtonColor(meeting.meetingType)} rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 text-center shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2`}
-                        >
-                          {getMeetingIcon(meeting.meetingType)}
-                          Join {getMeetingTypeLabel(meeting.meetingType)} Meeting
-                          <ExternalLink className="w-4 h-4" />
-                        </a>
+                        <div className="flex gap-2">
+                          <a
+                            href={meeting.meetingLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`flex-1 px-4 py-3 text-sm font-semibold text-white bg-gradient-to-r ${getMeetingButtonColor(meeting.meetingType)} rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 text-center shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2`}
+                          >
+                            {getMeetingIcon(meeting.meetingType)}
+                            Join Meeting
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                          <button
+                            onClick={() => setSelectedQRCode(meeting.meetingLink)}
+                            className="px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center"
+                            title="Show QR Code"
+                          >
+                            <QrCode className="w-5 h-5" />
+                          </button>
+                        </div>
                       </div>
                     ))}
                 </div>
@@ -256,6 +269,57 @@ export default function MeetingsPage() {
           </div>
         </div>
       </div>
+
+      {/* QR Code Modal */}
+      {selectedQRCode && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-fade-in"
+          onClick={() => setSelectedQRCode(null)}
+        >
+          <div 
+            className="bg-white dark:bg-gray-800 rounded-xl p-8 max-w-md w-full shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                Scan to Join Meeting
+              </h3>
+              <button
+                onClick={() => setSelectedQRCode(null)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                aria-label="Close"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="flex flex-col items-center space-y-4">
+              <div className="bg-white p-4 rounded-lg border-2 border-gray-200 dark:border-gray-700">
+                <QRCodeSVG
+                  value={selectedQRCode}
+                  size={256}
+                  level="H"
+                  includeMargin={true}
+                />
+              </div>
+              
+              <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
+                Scan this QR code with your phone camera to join the meeting
+              </p>
+              
+              <a
+                href={selectedQRCode}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 dark:text-blue-400 hover:underline text-sm font-medium flex items-center gap-2"
+              >
+                Or open link directly
+                <ExternalLink className="w-4 h-4" />
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

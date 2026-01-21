@@ -19,7 +19,11 @@ import {
   Mail,
   Phone,
   Globe,
-  Trash2
+  Trash2,
+  ArrowUp,
+  ArrowDown,
+  ChevronUp,
+  ChevronDown
 } from 'lucide-react';
 import Image from 'next/image';
 import { formatDate, formatTime } from '@/lib/utils';
@@ -59,6 +63,12 @@ export default function AdminPage() {
   const [sessionFilter, setSessionFilter] = useState<'all' | 'daytime' | 'evening'>('all');
   const [registrationFilter, setRegistrationFilter] = useState<'all' | 'confirmed' | 'cancelled'>('all');
   const [emailSentFilter, setEmailSentFilter] = useState<'all' | 'sent' | 'pending'>('all');
+  
+  // Sorting state
+  const [sessionSortField, setSessionSortField] = useState<string | null>(null);
+  const [sessionSortDirection, setSessionSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [registrationSortField, setRegistrationSortField] = useState<string | null>(null);
+  const [registrationSortDirection, setRegistrationSortDirection] = useState<'asc' | 'desc'>('asc');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
@@ -136,26 +146,110 @@ export default function AdminPage() {
     }
   };
 
-  // Filter sessions
-  const filteredSessions = sessions?.filter(session => {
-    const matchesSearch = session.programName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         session.sessionDate.includes(searchTerm) ||
-                         session.sessionTime.includes(searchTerm);
-    const matchesFilter = sessionFilter === 'all' || session.sessionType === sessionFilter;
-    return matchesSearch && matchesFilter;
-  }) || [];
+  // Sort and filter sessions
+  const filteredAndSortedSessions = (() => {
+    let filtered = sessions?.filter(session => {
+      const matchesSearch = session.programName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           session.sessionDate.includes(searchTerm) ||
+                           session.sessionTime.includes(searchTerm);
+      const matchesFilter = sessionFilter === 'all' || session.sessionType === sessionFilter;
+      return matchesSearch && matchesFilter;
+    }) || [];
 
-  // Filter registrations
-  const filteredRegistrations = registrations?.filter(reg => {
-    const matchesSearch = reg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         reg.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         reg.programName.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatusFilter = registrationFilter === 'all' || reg.status.toLowerCase() === registrationFilter;
-    const matchesEmailSentFilter = emailSentFilter === 'all' || 
-                                  (emailSentFilter === 'sent' && reg.emailSent === true) ||
-                                  (emailSentFilter === 'pending' && (reg.emailSent === false || reg.emailSent === undefined));
-    return matchesSearch && matchesStatusFilter && matchesEmailSentFilter;
-  }) || [];
+    // Apply sorting
+    if (sessionSortField) {
+      filtered = [...filtered].sort((a, b) => {
+        let aValue: any = a[sessionSortField as keyof typeof a];
+        let bValue: any = b[sessionSortField as keyof typeof b];
+
+        // Handle date sorting
+        if (sessionSortField === 'sessionDate') {
+          aValue = new Date(aValue).getTime();
+          bValue = new Date(bValue).getTime();
+        }
+        // Handle time sorting
+        else if (sessionSortField === 'sessionTime') {
+          aValue = aValue.split(':').map(Number);
+          bValue = bValue.split(':').map(Number);
+          aValue = aValue[0] * 60 + aValue[1];
+          bValue = bValue[0] * 60 + bValue[1];
+        }
+        // Handle string sorting
+        else if (typeof aValue === 'string') {
+          aValue = aValue.toLowerCase();
+          bValue = bValue.toLowerCase();
+        }
+
+        if (aValue < bValue) return sessionSortDirection === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sessionSortDirection === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return filtered;
+  })();
+
+  const handleSessionSort = (field: string) => {
+    if (sessionSortField === field) {
+      setSessionSortDirection(sessionSortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSessionSortField(field);
+      setSessionSortDirection('asc');
+    }
+  };
+
+  // Sort and filter registrations
+  const filteredAndSortedRegistrations = (() => {
+    let filtered = registrations?.filter(reg => {
+      const matchesSearch = reg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           reg.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           reg.programName.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatusFilter = registrationFilter === 'all' || reg.status.toLowerCase() === registrationFilter;
+      const matchesEmailSentFilter = emailSentFilter === 'all' || 
+                                    (emailSentFilter === 'sent' && reg.emailSent === true) ||
+                                    (emailSentFilter === 'pending' && (reg.emailSent === false || reg.emailSent === undefined));
+      return matchesSearch && matchesStatusFilter && matchesEmailSentFilter;
+    }) || [];
+
+    // Apply sorting
+    if (registrationSortField) {
+      filtered = [...filtered].sort((a, b) => {
+        let aValue: any = a[registrationSortField as keyof typeof a];
+        let bValue: any = b[registrationSortField as keyof typeof b];
+
+        // Handle date sorting
+        if (registrationSortField === 'createdAt') {
+          aValue = new Date(aValue).getTime();
+          bValue = new Date(bValue).getTime();
+        }
+        // Handle boolean sorting
+        else if (typeof aValue === 'boolean') {
+          aValue = aValue ? 1 : 0;
+          bValue = bValue ? 1 : 0;
+        }
+        // Handle string sorting
+        else if (typeof aValue === 'string') {
+          aValue = aValue.toLowerCase();
+          bValue = bValue.toLowerCase();
+        }
+
+        if (aValue < bValue) return registrationSortDirection === 'asc' ? -1 : 1;
+        if (aValue > bValue) return registrationSortDirection === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return filtered;
+  })();
+
+  const handleRegistrationSort = (field: string) => {
+    if (registrationSortField === field) {
+      setRegistrationSortDirection(registrationSortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setRegistrationSortField(field);
+      setRegistrationSortDirection('asc');
+    }
+  };
 
   // Get registration count per session
   const getRegistrationCount = (sessionId: string) => {
@@ -185,11 +279,11 @@ export default function AdminPage() {
   }
 
   const exportRegistrations = () => {
-    if (!filteredRegistrations || filteredRegistrations.length === 0) return;
+    if (!filteredAndSortedRegistrations || filteredAndSortedRegistrations.length === 0) return;
     
     const csv = [
-      ['Name', 'Email', 'Language', 'Program', 'Agency', 'NYCPS Staff', 'Status', 'Session Date', 'Session Time', 'Registered Date'].join(','),
-      ...filteredRegistrations.map(reg => {
+      ['Name', 'Email', 'Language', 'Program', 'Agency', 'NYCPS Staff', 'Status', 'Email Sent', 'Session Date', 'Session Time', 'Registered Date'].join(','),
+      ...filteredAndSortedRegistrations.map(reg => {
         const session = sessions?.find(s => s._id === reg.sessionId);
         return [
           `"${reg.name}"`,
@@ -199,6 +293,7 @@ export default function AdminPage() {
           `"${reg.agencyName || ''}"`,
           reg.isNYCPSStaff ? 'Yes' : 'No',
           `"${reg.status}"`,
+          reg.emailSent ? 'Yes' : 'No',
           session ? `"${formatDate(session.sessionDate)}"` : '',
           session ? `"${formatTime(session.sessionTime)}"` : '',
           `"${new Date(reg.createdAt).toLocaleString()}"`
@@ -438,7 +533,7 @@ export default function AdminPage() {
                   <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
                   <p className="mt-4 text-gray-600 dark:text-gray-400">Loading sessions...</p>
                 </div>
-              ) : filteredSessions.length === 0 ? (
+              ) : filteredAndSortedSessions.length === 0 ? (
                 <div className="text-center py-12">
                   <Video className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-600 dark:text-gray-400">No sessions found</p>
@@ -448,10 +543,50 @@ export default function AdminPage() {
                   <table className="w-full">
                     <thead>
                       <tr className="border-b-2 border-gray-200 dark:border-gray-700">
-                        <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Program</th>
-                        <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Date</th>
-                        <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Time</th>
-                        <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Type</th>
+                        <th 
+                          className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                          onClick={() => handleSessionSort('programName')}
+                        >
+                          <div className="flex items-center gap-2">
+                            Program
+                            {sessionSortField === 'programName' && (
+                              sessionSortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                            )}
+                          </div>
+                        </th>
+                        <th 
+                          className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                          onClick={() => handleSessionSort('sessionDate')}
+                        >
+                          <div className="flex items-center gap-2">
+                            Date
+                            {sessionSortField === 'sessionDate' && (
+                              sessionSortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                            )}
+                          </div>
+                        </th>
+                        <th 
+                          className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                          onClick={() => handleSessionSort('sessionTime')}
+                        >
+                          <div className="flex items-center gap-2">
+                            Time
+                            {sessionSortField === 'sessionTime' && (
+                              sessionSortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                            )}
+                          </div>
+                        </th>
+                        <th 
+                          className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                          onClick={() => handleSessionSort('sessionType')}
+                        >
+                          <div className="flex items-center gap-2">
+                            Type
+                            {sessionSortField === 'sessionType' && (
+                              sessionSortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                            )}
+                          </div>
+                        </th>
                         <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Meeting</th>
                         <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Registrations</th>
                         <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Capacity</th>
@@ -459,7 +594,7 @@ export default function AdminPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredSessions.map((session) => {
+                      {filteredAndSortedSessions.map((session) => {
                         const regCount = getRegistrationCount(session._id);
                         const meetingLink = session.meetingLink || session.teamsLink;
                         const meetingType = session.meetingType || (session.teamsLink ? 'teams' : 'none');
@@ -525,7 +660,7 @@ export default function AdminPage() {
                   <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
                   <p className="mt-4 text-gray-600 dark:text-gray-400">Loading registrations...</p>
                 </div>
-              ) : filteredRegistrations.length === 0 ? (
+              ) : filteredAndSortedRegistrations.length === 0 ? (
                 <div className="text-center py-12">
                   <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-600 dark:text-gray-400">No registrations found</p>
@@ -535,20 +670,100 @@ export default function AdminPage() {
                   <table className="w-full">
                     <thead>
                       <tr className="border-b-2 border-gray-200 dark:border-gray-700">
-                        <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Name</th>
-                        <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Email</th>
-                        <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Program</th>
-                        <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Language</th>
+                        <th 
+                          className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                          onClick={() => handleRegistrationSort('name')}
+                        >
+                          <div className="flex items-center gap-2">
+                            Name
+                            {registrationSortField === 'name' && (
+                              registrationSortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                            )}
+                          </div>
+                        </th>
+                        <th 
+                          className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                          onClick={() => handleRegistrationSort('email')}
+                        >
+                          <div className="flex items-center gap-2">
+                            Email
+                            {registrationSortField === 'email' && (
+                              registrationSortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                            )}
+                          </div>
+                        </th>
+                        <th 
+                          className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                          onClick={() => handleRegistrationSort('programName')}
+                        >
+                          <div className="flex items-center gap-2">
+                            Program
+                            {registrationSortField === 'programName' && (
+                              registrationSortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                            )}
+                          </div>
+                        </th>
+                        <th 
+                          className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                          onClick={() => handleRegistrationSort('language')}
+                        >
+                          <div className="flex items-center gap-2">
+                            Language
+                            {registrationSortField === 'language' && (
+                              registrationSortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                            )}
+                          </div>
+                        </th>
                         <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Agency</th>
-                        <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">NYCPS Staff</th>
-                        <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Status</th>
-                        <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Email Sent</th>
-                        <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Registered</th>
+                        <th 
+                          className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                          onClick={() => handleRegistrationSort('isNYCPSStaff')}
+                        >
+                          <div className="flex items-center gap-2">
+                            NYCPS Staff
+                            {registrationSortField === 'isNYCPSStaff' && (
+                              registrationSortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                            )}
+                          </div>
+                        </th>
+                        <th 
+                          className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                          onClick={() => handleRegistrationSort('status')}
+                        >
+                          <div className="flex items-center gap-2">
+                            Status
+                            {registrationSortField === 'status' && (
+                              registrationSortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                            )}
+                          </div>
+                        </th>
+                        <th 
+                          className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                          onClick={() => handleRegistrationSort('emailSent')}
+                        >
+                          <div className="flex items-center gap-2">
+                            Email Sent
+                            {registrationSortField === 'emailSent' && (
+                              registrationSortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                            )}
+                          </div>
+                        </th>
+                        <th 
+                          className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                          onClick={() => handleRegistrationSort('createdAt')}
+                        >
+                          <div className="flex items-center gap-2">
+                            Registered
+                            {registrationSortField === 'createdAt' && (
+                              registrationSortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                            )}
+                          </div>
+                        </th>
                         <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredRegistrations.map((reg) => {
+                      {filteredAndSortedRegistrations.map((reg) => {
                         const session = sessions?.find(s => s._id === reg.sessionId);
                         return (
                           <tr key={reg._id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-gray-700/50">

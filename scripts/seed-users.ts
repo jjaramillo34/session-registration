@@ -17,6 +17,11 @@ import User from '../src/models/User';
 // Load environment variables from .env.local
 config({ path: resolve(__dirname, '../.env.local') });
 
+const DEFAULT_PASSWORD = process.env.DEFAULT_PASSWORD || 'password';
+if (!DEFAULT_PASSWORD) {
+  throw new Error('DEFAULT_PASSWORD environment variable is not set');
+}
+
 async function seedUsers() {
   try {
     const MONGODB_URI = process.env.MONGODB_URI;
@@ -32,19 +37,18 @@ async function seedUsers() {
         name: 'Javier Jaramillo',
         email: 'jjaramillo7@schools.nyc.gov',
         // Delete this line and uncomment the line below to use a secure password
-        // password: 'D79Admin2026!', // Change this to a secure password
-        password: 'password',
+        password: DEFAULT_PASSWORD,
         role: 'admin' as const,
       },
       {
         name: 'Stacey Oliger',
         email: 'SOliger@schools.nyc.gov',
-        password: 'D79Admin2026!', // Change this to a secure password
+        password: DEFAULT_PASSWORD,
         role: 'admin' as const,
       },
     ];
 
-    console.log('\n📝 Creating admin users...\n');
+    console.log(`\n📝 Creating admin users with password: ${DEFAULT_PASSWORD}\n`);
 
     for (const userData of users) {
       // Check if user already exists
@@ -62,7 +66,7 @@ async function seedUsers() {
 
     console.log('\n✅ User seeding completed successfully!');
     console.log('\n⚠️  IMPORTANT: Please change the default passwords after first login!');
-    console.log('   Default password: D79Admin2026!');
+    console.log(`   Default password: ${DEFAULT_PASSWORD}`);
 
     await mongoose.disconnect();
   } catch (error) {
