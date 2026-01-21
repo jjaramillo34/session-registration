@@ -58,6 +58,7 @@ export default function AdminPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sessionFilter, setSessionFilter] = useState<'all' | 'daytime' | 'evening'>('all');
   const [registrationFilter, setRegistrationFilter] = useState<'all' | 'confirmed' | 'cancelled'>('all');
+  const [emailSentFilter, setEmailSentFilter] = useState<'all' | 'sent' | 'pending'>('all');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
@@ -149,8 +150,11 @@ export default function AdminPage() {
     const matchesSearch = reg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          reg.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          reg.programName.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = registrationFilter === 'all' || reg.status.toLowerCase() === registrationFilter;
-    return matchesSearch && matchesFilter;
+    const matchesStatusFilter = registrationFilter === 'all' || reg.status.toLowerCase() === registrationFilter;
+    const matchesEmailSentFilter = emailSentFilter === 'all' || 
+                                  (emailSentFilter === 'sent' && reg.emailSent === true) ||
+                                  (emailSentFilter === 'pending' && (reg.emailSent === false || reg.emailSent === undefined));
+    return matchesSearch && matchesStatusFilter && matchesEmailSentFilter;
   }) || [];
 
   // Get registration count per session
@@ -347,37 +351,73 @@ export default function AdminPage() {
                 </div>
               )}
               {activeTab === 'registrations' && (
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setRegistrationFilter('all')}
-                    className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
-                      registrationFilter === 'all'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-                    }`}
-                  >
-                    All
-                  </button>
-                  <button
-                    onClick={() => setRegistrationFilter('confirmed')}
-                    className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
-                      registrationFilter === 'confirmed'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-                    }`}
-                  >
-                    Confirmed
-                  </button>
-                  <button
-                    onClick={() => setRegistrationFilter('cancelled')}
-                    className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
-                      registrationFilter === 'cancelled'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-                    }`}
-                  >
-                    Cancelled
-                  </button>
+                <div className="flex flex-wrap gap-2">
+                  <div className="flex gap-2 border-r border-gray-300 dark:border-gray-600 pr-2 mr-2">
+                    <span className="px-2 py-2 text-sm font-semibold text-gray-600 dark:text-gray-400">Status:</span>
+                    <button
+                      onClick={() => setRegistrationFilter('all')}
+                      className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                        registrationFilter === 'all'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                      }`}
+                    >
+                      All
+                    </button>
+                    <button
+                      onClick={() => setRegistrationFilter('confirmed')}
+                      className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                        registrationFilter === 'confirmed'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                      }`}
+                    >
+                      Confirmed
+                    </button>
+                    <button
+                      onClick={() => setRegistrationFilter('cancelled')}
+                      className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                        registrationFilter === 'cancelled'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                      }`}
+                    >
+                      Cancelled
+                    </button>
+                  </div>
+                  <div className="flex gap-2 border-r border-gray-300 dark:border-gray-600 pr-2 mr-2">
+                    <span className="px-2 py-2 text-sm font-semibold text-gray-600 dark:text-gray-400">Email:</span>
+                    <button
+                      onClick={() => setEmailSentFilter('all')}
+                      className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                        emailSentFilter === 'all'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                      }`}
+                    >
+                      All
+                    </button>
+                    <button
+                      onClick={() => setEmailSentFilter('sent')}
+                      className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                        emailSentFilter === 'sent'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                      }`}
+                    >
+                      Sent
+                    </button>
+                    <button
+                      onClick={() => setEmailSentFilter('pending')}
+                      className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                        emailSentFilter === 'pending'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                      }`}
+                    >
+                      Pending
+                    </button>
+                  </div>
                   <button
                     onClick={exportRegistrations}
                     className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center gap-2"

@@ -102,22 +102,34 @@ export default function SessionRegistrationModal({
   const isDaytimeSession = timeSlot.sessionType === 'daytime';
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-fade-in">
+      <div className="bg-white dark:bg-gray-800 rounded-xl max-w-md w-full p-6 shadow-2xl transform transition-all relative">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+          aria-label="Close modal"
+        >
+          <X className="w-6 h-6" />
+        </button>
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6 pr-8">
           Register for {programName}
         </h2>
 
-        <div className="mb-4">
-          <p className="text-gray-600 dark:text-gray-300">
-            Date: {formatDate(timeSlot.date)}
+        <div className="mb-6 space-y-2">
+          <p className="text-gray-700 dark:text-gray-300 font-medium">
+            Date: <span className="font-normal">{formatDate(timeSlot.date)}</span>
           </p>
-          <p className="text-gray-600 dark:text-gray-300">
-            Time: {formatTime(timeSlot.time)}
+          <p className="text-gray-700 dark:text-gray-300 font-medium">
+            Time: <span className="font-normal">{formatTime(timeSlot.time)}</span>
           </p>
-          <p className="mt-2 text-sm text-blue-600 dark:text-blue-400">
-            {isDaytimeSession ? 'Morning Session - For NYCPS Staff and Partner Agencies' : 'Evening Session - Open to All'}
-          </p>
+          <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+            <a 
+              href="#" 
+              className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline transition-colors"
+            >
+              {isDaytimeSession ? 'Morning Session - For NYCPS Staff and Partner Agencies' : 'Evening Session - Open to All'}
+            </a>
+          </div>
         </div>
 
         {success ? (
@@ -135,14 +147,15 @@ export default function SessionRegistrationModal({
             )}
 
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label htmlFor="name" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                 Full Name
               </label>
               <input
                 type="text"
                 id="name"
                 {...register('name', { required: 'Name is required' })}
-                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 block w-full px-3 py-2 rounded-lg border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors"
+                placeholder="Enter your full name"
               />
               {errors.name && (
                 <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name.message}</p>
@@ -150,7 +163,7 @@ export default function SessionRegistrationModal({
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                 Email Address
               </label>
               <input
@@ -163,7 +176,8 @@ export default function SessionRegistrationModal({
                     message: 'Invalid email address'
                   }
                 })}
-                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 block w-full px-3 py-2 rounded-lg border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors"
+                placeholder="Enter your email address"
               />
               {errors.email && (
                 <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email.message}</p>
@@ -173,7 +187,7 @@ export default function SessionRegistrationModal({
             {/* Agency Name - Only for daytime sessions */}
             {isDaytimeSession && (
               <div>
-                <label htmlFor="agencyName" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label htmlFor="agencyName" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                   Agency Name <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -182,7 +196,8 @@ export default function SessionRegistrationModal({
                   {...register('agencyName', {
                     required: 'Agency name is required for morning sessions'
                   })}
-                  className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  className="mt-1 block w-full px-3 py-2 rounded-lg border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors"
+                  placeholder="Enter your agency name"
                 />
                 {errors.agencyName && (
                   <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.agencyName.message}</p>
@@ -215,18 +230,18 @@ export default function SessionRegistrationModal({
               </div>
             )}
 
-            <div className="flex justify-end space-x-3 mt-6">
+            <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                className="px-6 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isLoading}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-md hover:shadow-lg"
               >
                 {isLoading ? 'Registering...' : 'Register'}
               </button>
