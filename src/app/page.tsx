@@ -286,17 +286,6 @@ export default function Home() {
                 <ArrowRight className="w-5 h-5 transform group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
-            
-            {/* Admin Link (for staff) */}
-            <div className="mt-6 text-center">
-              <Link
-                href="/admin"
-                className="inline-flex items-center gap-2 px-6 py-2 text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-              >
-                <Settings className="w-4 h-4" />
-                Admin Dashboard
-              </Link>
-            </div>
           </div>
         </div>
       </div>
