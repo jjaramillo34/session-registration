@@ -6,7 +6,7 @@ import { X } from 'lucide-react';
 import { formatDate, formatTime } from '@/lib/utils';
 
 interface TimeSlot {
-  id: number;
+  id: string;
   date: string;
   time: string;
   sessionType: 'daytime' | 'evening';
@@ -74,7 +74,9 @@ export default function SessionRegistrationModal({
           timeSlotId: timeSlot.id,
           isNYCPSStaff: data.email.toLowerCase().endsWith('@schools.nyc.gov'),
           // Set default language to English for daytime sessions
-          language: timeSlot.sessionType === 'daytime' ? 'ENGLISH' : data.language
+          language: timeSlot.sessionType === 'daytime' ? 'ENGLISH' : data.language,
+          // Set default agency name to "Public" for evening sessions if not provided
+          agencyName: data.agencyName || (timeSlot.sessionType === 'evening' ? 'Public' : undefined)
         }),
       });
 
@@ -184,31 +186,34 @@ export default function SessionRegistrationModal({
               )}
             </div>
 
-            {/* Agency Name - Only for daytime sessions */}
-            {isDaytimeSession && (
-              <div>
-                <label htmlFor="agencyName" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                  Agency Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  id="agencyName"
-                  {...register('agencyName', {
-                    required: 'Agency name is required for morning sessions'
-                  })}
-                  className="mt-1 block w-full px-3 py-2 rounded-lg border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors"
-                  placeholder="Enter your agency name"
-                />
-                {errors.agencyName && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.agencyName.message}</p>
-                )}
-              </div>
-            )}
+            {/* Agency Name - Required for daytime, optional for evening */}
+            <div>
+              <label htmlFor="agencyName" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                Agency Name {isDaytimeSession && <span className="text-red-500">*</span>}
+              </label>
+              <input
+                type="text"
+                id="agencyName"
+                {...register('agencyName', {
+                  required: isDaytimeSession ? 'Agency name is required for morning sessions' : false
+                })}
+                className="mt-1 block w-full px-3 py-2 rounded-lg border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors"
+                placeholder={isDaytimeSession ? "Enter your agency name" : "Enter your agency name (e.g., Public)"}
+              />
+              {errors.agencyName && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.agencyName.message}</p>
+              )}
+              {!isDaytimeSession && (
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Optional - Enter your agency name or "Public" if not affiliated with an agency
+                </p>
+              )}
+            </div>
 
             {/* Language Selection - Only for evening sessions */}
             {!isDaytimeSession && (
               <div>
-                <label htmlFor="language" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label htmlFor="language" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                   Preferred Language <span className="text-red-500">*</span>
                 </label>
                 <select
@@ -216,7 +221,7 @@ export default function SessionRegistrationModal({
                   {...register('language', {
                     required: 'Language selection is required for evening sessions'
                   })}
-                  className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  className="mt-1 block w-full px-3 py-2 rounded-lg border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors"
                 >
                   {LANGUAGES.map(lang => (
                     <option key={lang.value} value={lang.value}>

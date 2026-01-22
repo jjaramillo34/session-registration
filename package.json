@@ -11,7 +11,8 @@
     "vercel-build": "next build",
     "seed:sessions": "ts-node scripts/seed-sessions.ts",
     "seed:users": "ts-node scripts/seed-users.ts",
-    "migrate:email-sent": "ts-node scripts/migrate-email-sent.ts"
+    "migrate:email-sent": "ts-node scripts/migrate-email-sent.ts",
+    "migrate:evening-agency": "ts-node scripts/migrate-evening-agency.ts"
   },
   "dependencies": {
     "@azure/identity": "^4.5.0",

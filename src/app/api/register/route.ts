@@ -70,13 +70,19 @@ export async function POST(request: Request) {
       );
     }
 
+    // Determine if this is an evening session
+    const isEveningSession = session.sessionType === 'evening';
+    
+    // Set default agency name for evening sessions if not provided
+    const finalAgencyName = agencyName || (isEveningSession ? 'Public' : undefined);
+
     // Create the registration
     const registration = await Registration.create({
       name,
       email,
       language: language || 'ENGLISH',
       programName,
-      agencyName,
+      agencyName: finalAgencyName,
       isNYCPSStaff,
       sessionId: sessionId,
     });

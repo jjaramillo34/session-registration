@@ -78,7 +78,10 @@ export default function ProgramPage({ params }: PageProps) {
             href="/allprograms"
             className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200 transition-colors"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <div className="flex items-center gap-2">
+              <ArrowLeft className="w-4 h-4" />
+              Back to All Programs
+            </div>
             Back to All Programs
           </Link>
         </div>
@@ -131,17 +134,22 @@ export default function ProgramPage({ params }: PageProps) {
       </div>
 
       <div className="container mx-auto px-4 py-12 relative z-10">
+        {/* Back to All Programs Link */}
+        <div className="mb-6">
+          <Link
+            href="/allprograms"
+            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200 transition-colors group"
+          >
+            <div className="flex items-center gap-2">
+              <ArrowLeft className="w-4 h-4 transform group-hover:-translate-x-1 transition-transform" />
+              Back to All Programs
+            </div>
+          </Link>
+        </div>
+
         <div className="max-w-6xl mx-auto">
           {/* Header Section */}
           <div className="text-center mb-12 space-y-6">
-            <Link
-              href="/allprograms"
-              className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200 mb-6 transition-colors group"
-            >
-              <ArrowLeft className="w-4 h-4 transform group-hover:-translate-x-1 transition-transform" />
-              Back to All Programs
-            </Link>
-            
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-semibold mb-4">
               <Sparkles className="w-4 h-4" />
               <span>FEBRUARY 23 - FEBRUARY 26, 2026</span>

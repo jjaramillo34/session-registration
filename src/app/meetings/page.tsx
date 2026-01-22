@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { formatDate, formatTime } from '@/lib/utils';
 import Link from 'next/link';
-import { ArrowLeft, Calendar, Clock, Video, Users, Sun, Moon, ExternalLink, MessageSquare, QrCode, X } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, Video, Users, Sun, Moon, ExternalLink, MessageSquare, QrCode, X, Lock } from 'lucide-react';
 import Image from 'next/image';
 import { MeetingType } from '@/types/session';
 import { QRCodeSVG } from 'qrcode.react';
@@ -22,6 +22,46 @@ interface Meeting {
 
 export default function MeetingsPage() {
   const [selectedQRCode, setSelectedQRCode] = useState<string | null>(null);
+  const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
+  const [timeUntilRelease, setTimeUntilRelease] = useState<string>('');
+
+  // Check if meetings page should be available
+  useEffect(() => {
+    const checkAvailability = () => {
+      // Set release date: February 23, 2026 at 12:00 PM Eastern Time
+      // EST (Eastern Standard Time) is UTC-5
+      // Create date: February 23, 2026 12:00 PM EST = February 23, 2026 17:00 UTC
+      const releaseDateUTC = new Date('2026-02-23T17:00:00Z');
+      
+      // Get current time in UTC
+      const now = new Date();
+      
+      // Compare times
+      const available = now >= releaseDateUTC;
+      setIsAvailable(available);
+
+      if (!available) {
+        const diff = releaseDateUTC.getTime() - now.getTime();
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        
+        if (days > 0) {
+          setTimeUntilRelease(`${days} day${days > 1 ? 's' : ''}, ${hours} hour${hours !== 1 ? 's' : ''}`);
+        } else if (hours > 0) {
+          setTimeUntilRelease(`${hours} hour${hours > 1 ? 's' : ''}, ${minutes} minute${minutes !== 1 ? 's' : ''}`);
+        } else {
+          setTimeUntilRelease(`${minutes} minute${minutes !== 1 ? 's' : ''}`);
+        }
+      }
+    };
+
+    checkAvailability();
+    // Update every minute
+    const interval = setInterval(checkAvailability, 60000);
+    
+    return () => clearInterval(interval);
+  }, []);
 
   const { data: meetings, isLoading, error } = useQuery<Meeting[]>({
     queryKey: ['meetings'],
@@ -32,7 +72,85 @@ export default function MeetingsPage() {
       }
       return response.json();
     },
+    enabled: isAvailable === true, // Only fetch when available
   });
+
+  // Show loading while checking availability
+  if (isAvailable === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-100 to-white dark:from-blue-900 dark:to-gray-900">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="text-blue-700 dark:text-blue-300">Checking availability...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show "not available yet" message if before release time
+  if (!isAvailable) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-blue-100 to-white dark:from-blue-900 dark:to-gray-900 relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/img/asterisk.png"
+            alt="Background Pattern"
+            fill
+            className="object-cover opacity-10"
+            priority
+          />
+        </div>
+
+        <div className="container mx-auto px-4 py-12 relative z-10">
+          <div className="max-w-2xl mx-auto">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200 mb-8 transition-colors group"
+            >
+              <ArrowLeft className="w-4 h-4 transform group-hover:-translate-x-1 transition-transform" />
+              Back to Home
+            </Link>
+
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-12 border-2 border-blue-200 dark:border-blue-800 text-center">
+              <div className="mb-6">
+                <div className="w-20 h-20 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Lock className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+                </div>
+                <h1 className="text-4xl font-bold text-blue-800 dark:text-blue-200 mb-4">
+                  Meeting Links Coming Soon
+                </h1>
+                <p className="text-xl text-blue-600 dark:text-blue-400 mb-6">
+                  Meeting links will be available on February 23, 2026 at 12:00 PM Eastern Time
+                </p>
+              </div>
+
+              <div className="bg-blue-50 dark:bg-blue-900/30 rounded-xl p-6 mb-6">
+                <div className="flex items-center justify-center gap-3 mb-2">
+                  <Calendar className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                  <p className="text-lg font-semibold text-blue-800 dark:text-blue-200">
+                    Available in: {timeUntilRelease || 'Calculating...'}
+                  </p>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                  Release Date: February 23, 2026 at 12:00 PM ET
+                </p>
+              </div>
+
+              <div className="space-y-4 text-gray-600 dark:text-gray-400">
+                <p>
+                  All Zoom and Teams meeting links for D79 Takeover Week will be published here once available.
+                </p>
+                <p className="text-sm">
+                  Please check back on the release date to access all virtual meeting links.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -48,15 +166,12 @@ export default function MeetingsPage() {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-100 to-white dark:from-blue-900 dark:to-gray-900">
+        <div className="flex items-center gap-2">
+          <ArrowLeft className="w-4 h-4" />
+          Back to Home
+        </div>
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 max-w-md w-full text-center space-y-4">
           <p className="text-red-800 dark:text-red-200 text-lg font-semibold">Error loading meetings</p>
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Home
-          </Link>
         </div>
       </div>
     );
@@ -144,17 +259,18 @@ export default function MeetingsPage() {
       </div>
 
       <div className="container mx-auto px-4 py-12 relative z-10">
+        <div className="mb-6">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200 transition-colors group"
+          >
+            <ArrowLeft className="w-4 h-4 transform group-hover:-translate-x-1 transition-transform" />
+            Back to Home
+          </Link>
+        </div>
         <div className="max-w-6xl mx-auto">
           {/* Header Section */}
           <div className="text-center mb-12 space-y-6">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200 mb-6 transition-colors group"
-            >
-              <ArrowLeft className="w-4 h-4 transform group-hover:-translate-x-1 transition-transform" />
-              Back to Home
-            </Link>
-            
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-semibold mb-4">
               <Video className="w-4 h-4" />
               <span>ALL MEETINGS</span>
