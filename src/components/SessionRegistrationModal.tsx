@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useRouter } from 'next/navigation';
 import { X } from 'lucide-react';
 import { formatDate, formatTime } from '@/lib/utils';
 
@@ -47,6 +48,7 @@ export default function SessionRegistrationModal({
   programName,
   timeSlot
 }: SessionRegistrationModalProps) {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -90,6 +92,7 @@ export default function SessionRegistrationModal({
       setTimeout(() => {
         onClose();
         setSuccess(false);
+        router.push('/');
       }, 2000);
     } catch (error) {
       console.error('Registration failed:', error);

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useRouter } from 'next/navigation';
 import { X } from 'lucide-react';
 
 interface CrawlRegistrationModalProps {
@@ -29,6 +30,7 @@ export default function CrawlRegistrationModal({
   onClose,
   crawl
 }: CrawlRegistrationModalProps) {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -67,6 +69,7 @@ export default function CrawlRegistrationModal({
       setTimeout(() => {
         onClose();
         setSuccess(false);
+        router.push('/');
       }, 2000);
     } catch (error) {
       console.error('Registration failed:', error);

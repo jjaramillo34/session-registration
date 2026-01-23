@@ -24,4 +24,13 @@ export function formatTime(time: string) {
   const period = hour >= 12 ? 'PM' : 'AM';
   const hour12 = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
   return `${hour12}:${minutes} ${period}`;
+}
+
+export function toTitleCase(str: string): string {
+  if (!str) return str;
+  return str
+    .toLowerCase()
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 } 

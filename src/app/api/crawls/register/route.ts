@@ -3,6 +3,7 @@ import connectDB from '@/lib/mongodb';
 import Crawl from '@/models/Crawl';
 import CrawlRegistration from '@/models/CrawlRegistration';
 import mongoose from 'mongoose';
+import { toTitleCase } from '@/lib/utils';
 
 export async function POST(request: Request) {
   try {
@@ -54,9 +55,13 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if user is already registered for this crawl
+    // Normalize data: title case for name, lowercase for email
+    const normalizedName = toTitleCase(name.trim());
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Check if user is already registered for this crawl (using normalized email)
     const existingRegistration = await CrawlRegistration.findOne({
-      email: email.toLowerCase(),
+      email: normalizedEmail,
       crawlId: crawlObjectId,
     });
 
@@ -69,8 +74,8 @@ export async function POST(request: Request) {
 
     // Create the registration
     const registration = await CrawlRegistration.create({
-      name,
-      email: email.toLowerCase(),
+      name: normalizedName,
+      email: normalizedEmail,
       crawlId: crawlObjectId,
     });
 

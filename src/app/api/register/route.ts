@@ -3,6 +3,7 @@ import connectDB from '@/lib/mongodb';
 import Session from '@/models/Session';
 import Registration from '@/models/Registration';
 import mongoose from 'mongoose';
+import { toTitleCase } from '@/lib/utils';
 
 export async function POST(request: Request) {
   try {
@@ -57,9 +58,20 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if user is already registered for this session
+    // Determine if this is an evening session
+    const isEveningSession = session.sessionType === 'evening';
+    
+    // Set default agency name for evening sessions if not provided
+    const finalAgencyName = agencyName || (isEveningSession ? 'Public' : undefined);
+
+    // Normalize data: title case for name and agencyName, lowercase for email
+    const normalizedName = toTitleCase(name.trim());
+    const normalizedEmail = email.toLowerCase().trim();
+    const normalizedAgencyName = finalAgencyName ? toTitleCase(finalAgencyName.trim()) : undefined;
+
+    // Check if user is already registered for this session (using normalized email)
     const existingRegistration = await Registration.findOne({
-      email,
+      email: normalizedEmail,
       sessionId: sessionId,
     });
 
@@ -70,19 +82,13 @@ export async function POST(request: Request) {
       );
     }
 
-    // Determine if this is an evening session
-    const isEveningSession = session.sessionType === 'evening';
-    
-    // Set default agency name for evening sessions if not provided
-    const finalAgencyName = agencyName || (isEveningSession ? 'Public' : undefined);
-
     // Create the registration
     const registration = await Registration.create({
-      name,
-      email,
+      name: normalizedName,
+      email: normalizedEmail,
       language: language || 'ENGLISH',
       programName,
-      agencyName: finalAgencyName,
+      agencyName: normalizedAgencyName,
       isNYCPSStaff,
       sessionId: sessionId,
     });
