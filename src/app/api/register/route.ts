@@ -58,11 +58,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // Determine if this is an evening session
-    const isEveningSession = session.sessionType === 'evening';
-    
-    // Set default agency name for evening sessions if not provided
-    const finalAgencyName = agencyName || (isEveningSession ? 'Public' : undefined);
+    // Set default agency name to "Public" if not provided
+    const finalAgencyName = agencyName || 'Public';
 
     // Normalize data: title case for name and agencyName, lowercase for email
     const normalizedName = toTitleCase(name.trim());

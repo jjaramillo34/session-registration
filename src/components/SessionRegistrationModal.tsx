@@ -77,8 +77,8 @@ export default function SessionRegistrationModal({
           isNYCPSStaff: data.email.toLowerCase().endsWith('@schools.nyc.gov'),
           // Set default language to English for daytime sessions
           language: timeSlot.sessionType === 'daytime' ? 'ENGLISH' : data.language,
-          // Set default agency name to "Public" for evening sessions if not provided
-          agencyName: data.agencyName || (timeSlot.sessionType === 'evening' ? 'Public' : undefined)
+          // Set default agency name to "Public" if not provided
+          agencyName: data.agencyName || 'Public'
         }),
       });
 
@@ -132,7 +132,7 @@ export default function SessionRegistrationModal({
               href="#" 
               className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline transition-colors"
             >
-              {isDaytimeSession ? 'Morning Session - For NYCPS Staff and Partner Agencies' : 'Evening Session - Open to All'}
+              {isDaytimeSession ? 'Morning Session - Open to All' : 'Evening Session - Open to All'}
             </a>
           </div>
         </div>
@@ -189,28 +189,21 @@ export default function SessionRegistrationModal({
               )}
             </div>
 
-            {/* Agency Name - Required for daytime, optional for evening */}
+            {/* Organization/Agency Name - Optional, defaults to "Public" */}
             <div>
               <label htmlFor="agencyName" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                Agency Name {isDaytimeSession && <span className="text-red-500">*</span>}
+                Organization/Agency Name <span className="text-gray-500 font-normal text-xs">(Optional)</span>
               </label>
               <input
                 type="text"
                 id="agencyName"
-                {...register('agencyName', {
-                  required: isDaytimeSession ? 'Agency name is required for morning sessions' : false
-                })}
+                {...register('agencyName')}
                 className="mt-1 block w-full px-3 py-2 rounded-lg border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors"
-                placeholder={isDaytimeSession ? "Enter your agency name" : "Enter your agency name (e.g., Public)"}
+                placeholder="Enter your organization or agency name (leave blank for 'Public')"
               />
-              {errors.agencyName && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.agencyName.message}</p>
-              )}
-              {!isDaytimeSession && (
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Optional - Enter your agency name or "Public" if not affiliated with an agency
-                </p>
-              )}
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                If left blank, will default to "Public"
+              </p>
             </div>
 
             {/* Language Selection - Only for evening sessions */}
