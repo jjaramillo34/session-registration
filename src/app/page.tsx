@@ -237,7 +237,7 @@ export default function Home() {
                     <div className="text-center space-y-3 sm:space-y-4 relative z-10">
                       <PersonStanding className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 mx-auto mb-2 transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-300" />
                       <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold mb-2">
-                        FEBRUARY 27, 2026
+                        FEBRUARY 26, 2026
                       </h3>
                       <div className="space-y-2">
                         <p className="text-xl sm:text-2xl md:text-3xl font-bold">
