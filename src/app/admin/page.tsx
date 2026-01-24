@@ -336,7 +336,6 @@ export default function AdminPage() {
                   <ArrowLeft className="w-4 h-4 transform group-hover:-translate-x-1 transition-transform" />
                   Back to Home
                 </div>
-                Back to Home
               </Link>
               {user && (
                 <div className="flex items-center gap-4">
