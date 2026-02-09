@@ -19,11 +19,19 @@ export function formatDate(dateStr: string) {
 }
 
 export function formatTime(time: string) {
-  const hour = parseInt(time.slice(0, -2));
-  const minutes = time.slice(-2);
+  if (!time) return '';
+  const parts = time.match(/^(\d{1,2}):(\d{2})$/);
+  if (!parts) return time;
+  const hour = parseInt(parts[1], 10);
+  const minutes = parts[2];
   const period = hour >= 12 ? 'PM' : 'AM';
   const hour12 = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
   return `${hour12}:${minutes} ${period}`;
+}
+
+export function formatTimeRange(startTime: string, endTime?: string) {
+  if (!endTime || startTime === endTime) return formatTime(startTime);
+  return `${formatTime(startTime)} – ${formatTime(endTime)}`;
 }
 
 export function toTitleCase(str: string): string {

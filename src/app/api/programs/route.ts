@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Session from '@/models/Session';
-import { D79_PROGRAMS } from '@/lib/constants';
+import { D79_PROGRAMS, PROGRAM_DESCRIPTIONS } from '@/lib/constants';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -19,9 +19,12 @@ export async function GET() {
           .select('_id programName')
           .lean();
 
+        const info = PROGRAM_DESCRIPTIONS[programName];
         return {
           _id: session?._id ? session._id.toString() : null,
           name: programName,
+          description: info?.description ?? undefined,
+          website: info?.website ?? undefined,
         };
       })
     );

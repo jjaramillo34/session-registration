@@ -1,18 +1,20 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
-import { X } from 'lucide-react';
+import { X, MapPin, Calendar, Clock, User, Mail, CheckCircle } from 'lucide-react';
+import { formatDate, formatTimeRange } from '@/lib/utils';
 
 interface CrawlRegistrationModalProps {
   isOpen: boolean;
   onClose: () => void;
   crawl: {
-    id: number;
+    id: string;
     name: string;
     location: string;
     address: string;
     date: string;
     time: string;
+    endTime?: string;
     capacity: number;
     _count?: {
       registrations: number;
@@ -83,110 +85,135 @@ export default function CrawlRegistrationModal({
 
   const spotsLeft = crawl.capacity - (crawl._count?.registrations || 0);
 
+  const inputBase =
+    'mt-2 block w-full rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors';
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6">
-        <div className="flex justify-between items-start mb-4">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Register for Crawl
-            </h2>
-            <p className="text-blue-600 dark:text-blue-400 mt-1">
-              {spotsLeft} spots remaining
-            </p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-gray-200 dark:border-gray-700">
+        {/* Header with accent */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 px-6 py-5">
+          <div className="flex justify-between items-start gap-4">
+            <div>
+              <h2 className="text-xl font-bold text-white">
+                Register for site crawl
+              </h2>
+              <span className="inline-flex items-center mt-2 px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white">
+                {spotsLeft} spots remaining
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-2 rounded-full text-white/80 hover:text-white hover:bg-white/20 transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
+              aria-label="Close"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
-          >
-            <X className="w-6 h-6" />
-          </button>
         </div>
 
-        <div className="mb-6">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
-            {crawl.name}
-          </h3>
-          <p className="text-gray-600 dark:text-gray-400">
-            {crawl.location}
-          </p>
-          <p className="text-gray-600 dark:text-gray-400">
-            {crawl.address}
-          </p>
-          <p className="text-gray-600 dark:text-gray-400">
-            {crawl.date} at {crawl.time}
-          </p>
-        </div>
-
-        {success ? (
-          <div className="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg mb-4">
-            <p className="text-green-800 dark:text-green-200">
-              Successfully registered! You will receive a confirmation email shortly.
-            </p>
+        <div className="p-6 space-y-5">
+          {/* Event details card */}
+          <div className="rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-600 p-4 space-y-3">
+            <h3 className="font-bold text-gray-900 dark:text-white text-lg leading-tight">
+              {crawl.name}
+            </h3>
+            <div className="space-y-2 text-sm">
+              <p className="flex items-start gap-2 text-gray-600 dark:text-gray-300">
+                <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0 text-blue-500" />
+                <span>{crawl.address}</span>
+              </p>
+              <p className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                <Calendar className="w-4 h-4 flex-shrink-0 text-blue-500" />
+                <span>{formatDate(crawl.date)}</span>
+              </p>
+              <p className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                <Clock className="w-4 h-4 flex-shrink-0 text-blue-500" />
+                <span>{formatTimeRange(crawl.time, crawl.endTime)}</span>
+              </p>
+            </div>
           </div>
-        ) : (
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {error && (
-              <div className="bg-red-50 dark:bg-red-900/30 p-4 rounded-lg">
-                <p className="text-red-800 dark:text-red-200">{error}</p>
+
+          {success ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <div className="w-14 h-14 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center mb-4">
+                <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
               </div>
-            )}
-
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Full Name
-              </label>
-              <input
-                type="text"
-                id="name"
-                {...register('name', { required: 'Name is required' })}
-                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              />
-              {errors.name && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name.message}</p>
+              <p className="font-semibold text-gray-900 dark:text-white">
+                You’re registered
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                You’ll receive a confirmation email shortly.
+              </p>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+              {error && (
+                <div className="rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4">
+                  <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
+                </div>
               )}
-            </div>
 
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                NYCPS Email Address
-              </label>
-              <input
-                type="email"
-                id="email"
-                {...register('email', {
-                  required: 'Email is required',
-                  pattern: {
-                    value: /^[A-Z0-9._%+-]+@schools\.nyc\.gov$/i,
-                    message: 'Must be a valid @schools.nyc.gov email address'
-                  }
-                })}
-                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                placeholder="username@schools.nyc.gov"
-              />
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email.message}</p>
-              )}
-            </div>
+              <div>
+                <label htmlFor="name" className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <User className="w-4 h-4 text-blue-500" />
+                  Full name
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  {...register('name', { required: 'Name is required' })}
+                  className={`${inputBase} ${errors.name ? 'border-red-400 dark:border-red-500' : ''}`}
+                  placeholder="Your full name"
+                />
+                {errors.name && (
+                  <p className="mt-1.5 text-sm text-red-600 dark:text-red-400">{errors.name.message}</p>
+                )}
+              </div>
 
-            <div className="flex justify-end space-x-3 mt-6">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoading ? 'Registering...' : 'Register'}
-              </button>
-            </div>
-          </form>
-        )}
+              <div>
+                <label htmlFor="email" className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <Mail className="w-4 h-4 text-blue-500" />
+                  NYCPS email
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  {...register('email', {
+                    required: 'Email is required',
+                    pattern: {
+                      value: /^[A-Z0-9._%+-]+@schools\.nyc\.gov$/i,
+                      message: 'Must be a valid @schools.nyc.gov email address',
+                    },
+                  })}
+                  className={`${inputBase} ${errors.email ? 'border-red-400 dark:border-red-500' : ''}`}
+                  placeholder="username@schools.nyc.gov"
+                />
+                {errors.email && (
+                  <p className="mt-1.5 text-sm text-red-600 dark:text-red-400">{errors.email.message}</p>
+                )}
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex-1 py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="flex-1 py-3 px-4 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-500/25 transition-all"
+                >
+                  {isLoading ? 'Registering…' : 'Register'}
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
       </div>
     </div>
   );

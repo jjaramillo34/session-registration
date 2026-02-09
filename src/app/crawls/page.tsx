@@ -7,15 +7,17 @@ import Image from 'next/image';
 import { ArrowLeft, MapPin, Users, Calendar, Clock, Map, PersonStanding, ArrowRight } from 'lucide-react';
 import CrawlRegistrationModal from '@/components/CrawlRegistrationModal';
 import CrawlMap from '@/components/CrawlMap';
-import { formatDate, formatTime } from '@/lib/utils';
+import { formatDate, formatTimeRange } from '@/lib/utils';
 
 interface Crawl {
-  id: number;
+  id: string;
   name: string;
   location: string;
   address: string;
   date: string;
   time: string;
+  endTime?: string;
+  borough?: string;
   capacity: number;
   available: boolean;
   coordinates: [number, number];
@@ -121,7 +123,7 @@ export default function CrawlsPage() {
             <div className="text-center space-y-4">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-600 text-white rounded-full text-xs sm:text-sm font-semibold">
                 <PersonStanding className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span className="whitespace-nowrap">FEBRUARY 26, 2026</span>
+                <span className="whitespace-nowrap">FEBRUARY 27, 2026</span>
               </div>
               <div className="space-y-1 sm:space-y-2">
                 <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-blue-800 dark:text-blue-200 tracking-tight leading-tight">
@@ -184,7 +186,7 @@ export default function CrawlsPage() {
                           </div>
                           <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                             <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                            <p>{formatTime(crawl.time)}</p>
+                            <p>{formatTimeRange(crawl.time, crawl.endTime)}</p>
                           </div>
                           <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                             <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />

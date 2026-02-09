@@ -17,6 +17,7 @@ export const revalidate = 0;
  * - markAsSent: If 'true', marks the returned registrations as emailSent: true (default: false)
  * 
  * Returns an array of registrations with session details included.
+ * Each item includes eventType: "virtual_session" for Power Automate branching.
  */
 export async function GET(request: Request) {
   try {
@@ -51,6 +52,7 @@ export async function GET(request: Request) {
       pendingRegistrations.map(async (reg) => {
         const session = await Session.findById(reg.sessionId).lean();
         return {
+          eventType: 'virtual_session',
           _id: reg._id.toString(),
           name: reg.name,
           email: reg.email,

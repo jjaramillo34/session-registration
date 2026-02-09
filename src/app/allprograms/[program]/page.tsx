@@ -7,6 +7,7 @@ import SessionRegistrationModal from '@/components/SessionRegistrationModal';
 import Link from 'next/link';
 import { ArrowLeft, Calendar, Clock, Users, Video, Sparkles, ArrowRight, ExternalLink, Sun, Moon } from 'lucide-react';
 import Image from 'next/image';
+import { PROGRAM_DESCRIPTIONS } from '@/lib/constants';
 
 interface TimeSlot {
   id: string; // MongoDB _id as string
@@ -120,6 +121,9 @@ export default function ProgramPage({ params }: PageProps) {
   const daytimeSessions = sessions.filter(session => session.sessionType === 'daytime');
   const eveningSessions = sessions.filter(session => session.sessionType === 'evening');
 
+  const programName = sessions[0].programName;
+  const programInfo = PROGRAM_DESCRIPTIONS[programName];
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-100 to-white dark:from-blue-900 dark:to-gray-900 relative overflow-hidden">
       {/* Background Pattern */}
@@ -177,6 +181,41 @@ export default function ProgramPage({ params }: PageProps) {
                 <div className="text-xs text-gray-600 dark:text-gray-400 uppercase">Evening</div>
               </div>
             </div>
+
+            {/* Program description */}
+            {programInfo?.description && (
+              <div className="mt-8 text-left max-w-3xl mx-auto">
+                <div className="bg-white/80 dark:bg-gray-800/80 rounded-xl p-6 shadow-lg border-2 border-blue-200 dark:border-blue-800">
+                  <p className="text-blue-800 dark:text-blue-200 text-base leading-relaxed">
+                    {programInfo.description}
+                  </p>
+                  <div className="flex flex-wrap gap-4 mt-4">
+                    {programInfo.website && (
+                      <a
+                        href={programInfo.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 font-semibold hover:text-blue-800 dark:hover:text-blue-200 transition-colors"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        {programInfo.websiteLabel ?? 'Learn more'}
+                      </a>
+                    )}
+                    {programInfo.website2 && (
+                      <a
+                        href={programInfo.website2}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 font-semibold hover:text-blue-800 dark:hover:text-blue-200 transition-colors"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        {programInfo.website2Label ?? 'Learn more'}
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Sessions Grid */}

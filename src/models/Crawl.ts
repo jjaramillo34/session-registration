@@ -6,6 +6,8 @@ export interface ICrawl extends Document {
   address: string;
   date: string;
   time: string;
+  endTime?: string;
+  borough?: string;
   capacity: number;
   available: boolean;
   coordinates: number[];
@@ -21,7 +23,9 @@ const CrawlSchema = new Schema<ICrawl>(
     address: { type: String, required: true },
     date: { type: String, required: true },
     time: { type: String, required: true },
-    capacity: { type: Number, default: 10 },
+    endTime: { type: String },
+    borough: { type: String },
+    capacity: { type: Number, default: 15 },
     available: { type: Boolean, default: true },
     coordinates: [{ type: Number }],
     description: { type: String, required: true },

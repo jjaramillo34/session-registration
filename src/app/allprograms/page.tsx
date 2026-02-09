@@ -8,6 +8,8 @@ import Image from 'next/image';
 interface Program {
   _id: string;
   name: string;
+  description?: string;
+  website?: string;
 }
 
 export default function AllProgramsPage() {
@@ -133,8 +135,8 @@ export default function AllProgramsPage() {
                     {program.name}
                   </h2>
                   
-                  <p className="text-gray-600 dark:text-gray-400 mb-4">
-                    View and register for all available sessions
+                  <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">
+                    {program.description ?? 'View and register for all available sessions'}
                   </p>
                   
                   <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-semibold text-sm opacity-0 group-hover:opacity-100 transition-opacity">

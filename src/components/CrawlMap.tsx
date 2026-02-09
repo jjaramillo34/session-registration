@@ -12,7 +12,7 @@ if (!MAPBOX_TOKEN) {
 mapboxgl.accessToken = MAPBOX_TOKEN || '';
 
 interface Crawl {
-  id: number;
+  id: string;
   name: string;
   location: string;
   address: string;
