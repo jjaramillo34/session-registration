@@ -511,6 +511,36 @@ export default function AdminPage() {
     window.URL.revokeObjectURL(url);
   };
 
+  const exportSessions = () => {
+    if (!filteredAndSortedSessions?.length) return;
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    const escape = (v: string) => `"${(v ?? '').replace(/"/g, '""')}"`;
+    const csv = [
+      ['Program', 'Date', 'Time', 'Type', 'Meeting Type', 'Meeting Link', 'Session Page Link'].join(','),
+      ...filteredAndSortedSessions.map((session) => {
+        const meetingLink = session.meetingLink || session.teamsLink || '';
+        const meetingType = session.meetingType || (session.teamsLink ? 'teams' : 'none');
+        const sessionPageLink = origin ? `${origin}/allprograms/${session._id}` : '';
+        return [
+          escape(session.programName),
+          escape(formatDate(session.sessionDate)),
+          escape(formatTime(session.sessionTime)),
+          escape(session.sessionType),
+          escape(meetingType),
+          escape(meetingLink),
+          escape(sessionPageLink),
+        ].join(',');
+      }),
+    ].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `sessions-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
   const exportCrawlRegistrations = () => {
     if (!filteredAndSortedCrawlRegistrations?.length) return;
     const csv = [
@@ -675,36 +705,45 @@ export default function AdminPage() {
                 />
               </div>
               {activeTab === 'sessions' && (
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2 items-center">
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setSessionFilter('all')}
+                      className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                        sessionFilter === 'all'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                      }`}
+                    >
+                      All
+                    </button>
+                    <button
+                      onClick={() => setSessionFilter('daytime')}
+                      className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                        sessionFilter === 'daytime'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                      }`}
+                    >
+                      Daytime
+                    </button>
+                    <button
+                      onClick={() => setSessionFilter('evening')}
+                      className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                        sessionFilter === 'evening'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                      }`}
+                    >
+                      Evening
+                    </button>
+                  </div>
                   <button
-                    onClick={() => setSessionFilter('all')}
-                    className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
-                      sessionFilter === 'all'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-                    }`}
+                    onClick={exportSessions}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center gap-2"
                   >
-                    All
-                  </button>
-                  <button
-                    onClick={() => setSessionFilter('daytime')}
-                    className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
-                      sessionFilter === 'daytime'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-                    }`}
-                  >
-                    Daytime
-                  </button>
-                  <button
-                    onClick={() => setSessionFilter('evening')}
-                    className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
-                      sessionFilter === 'evening'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-                    }`}
-                  >
-                    Evening
+                    <Download className="w-4 h-4" />
+                    Export CSV
                   </button>
                 </div>
               )}
