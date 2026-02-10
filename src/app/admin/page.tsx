@@ -1199,6 +1199,7 @@ export default function AdminPage() {
                           </div>
                         </th>
                         <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Address</th>
+                        <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Description</th>
                         <th
                           className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                           onClick={() => handleCrawlSort('date')}
@@ -1243,6 +1244,9 @@ export default function AdminPage() {
                             <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{crawl.borough || '-'}</td>
                             <td className="py-3 px-4 text-gray-600 dark:text-gray-400 text-sm max-w-xs truncate" title={crawl.address}>
                               {crawl.address || '-'}
+                            </td>
+                            <td className="py-3 px-4 text-gray-600 dark:text-gray-400 text-sm max-w-[200px] truncate" title={crawl.description || ''}>
+                              {crawl.description || '-'}
                             </td>
                             <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{formatDate(crawl.date)}</td>
                             <td className="py-3 px-4 text-gray-600 dark:text-gray-400">

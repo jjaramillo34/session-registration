@@ -43,7 +43,19 @@ export default function CrawlsPage() {
     },
   });
 
+  // Temporary: registration opens at 12:00 PM today
+  const now = new Date();
+  const registrationOpensAt = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
+  const crawlsOpen = now >= registrationOpensAt;
+  const openingDateLabel = registrationOpensAt.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+
   const handleRegister = (crawl: Crawl) => {
+    if (!crawlsOpen) return; // Registration not open yet
     setSelectedCrawl(crawl);
     setIsModalOpen(true);
   };
@@ -152,6 +164,14 @@ export default function CrawlsPage() {
               </p>
             </div>
 
+            {!crawlsOpen && (
+              <div className="bg-yellow-50 dark:bg-yellow-900/30 border-2 border-yellow-200 dark:border-yellow-700 p-4 sm:p-5 rounded-xl">
+                <p className="text-yellow-800 dark:text-yellow-200 font-medium text-center text-sm sm:text-base">
+                  Site crawl registration will open at 12:00 PM today ({openingDateLabel}). You can review locations and the schedule now; registration will be available then.
+                </p>
+              </div>
+            )}
+
             {showMap ? (
               <div className="rounded-xl overflow-hidden border-2 border-blue-200 dark:border-blue-800">
                 {crawls && <CrawlMap crawls={crawls} />}
@@ -161,6 +181,7 @@ export default function CrawlsPage() {
                 {crawls?.map((crawl) => {
                   const spotsLeft = crawl.capacity - (crawl._count?.registrations || 0);
                   const isFullyBooked = !crawl.available || spotsLeft === 0;
+                  const canRegister = crawlsOpen && !isFullyBooked;
 
                   return (
                     <div
@@ -200,11 +221,15 @@ export default function CrawlsPage() {
 
                         <button
                           onClick={() => handleRegister(crawl)}
-                          disabled={isFullyBooked}
+                          disabled={!canRegister}
                           className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-full hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 disabled:grayscale"
                         >
-                          {isFullyBooked ? 'Fully Booked' : 'Register'}
-                          {!isFullyBooked && <ArrowRight className="w-4 h-4" />}
+                          {!crawlsOpen
+                            ? 'Opens at 12:00 PM today'
+                            : isFullyBooked
+                              ? 'Fully Booked'
+                              : 'Register'}
+                          {canRegister && <ArrowRight className="w-4 h-4" />}
                         </button>
                       </div>
                     </div>

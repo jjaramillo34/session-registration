@@ -16,6 +16,7 @@ interface CrawlRegistrationModalProps {
     time: string;
     endTime?: string;
     capacity: number;
+    description?: string;
     _count?: {
       registrations: number;
     };
@@ -132,6 +133,11 @@ export default function CrawlRegistrationModal({
                 <Clock className="w-4 h-4 flex-shrink-0 text-blue-500" />
                 <span>{formatTimeRange(crawl.time, crawl.endTime)}</span>
               </p>
+              {crawl.description && (
+                <p className="text-gray-600 dark:text-gray-300 pt-1 border-t border-gray-200 dark:border-gray-600 mt-2">
+                  {crawl.description}
+                </p>
+              )}
             </div>
           </div>
 
