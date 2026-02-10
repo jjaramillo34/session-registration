@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { ArrowLeft, MapPin, Users, Calendar, Clock, Map, PersonStanding, ArrowRight } from 'lucide-react';
 import CrawlRegistrationModal from '@/components/CrawlRegistrationModal';
 import CrawlMap from '@/components/CrawlMap';
+import RichTextContent from '@/components/RichTextContent';
 import { formatDate, formatTimeRange } from '@/lib/utils';
 
 interface Crawl {
@@ -43,9 +44,9 @@ export default function CrawlsPage() {
     },
   });
 
-  // Temporary: registration opens at 12:00 PM today
+  // Temporary: registration opens at 13:00 PM today
   const now = new Date();
-  const registrationOpensAt = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
+  const registrationOpensAt = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 13, 0, 0);
   const crawlsOpen = now >= registrationOpensAt;
   const openingDateLabel = registrationOpensAt.toLocaleDateString('en-US', {
     weekday: 'long',
@@ -167,7 +168,7 @@ export default function CrawlsPage() {
             {!crawlsOpen && (
               <div className="bg-yellow-50 dark:bg-yellow-900/30 border-2 border-yellow-200 dark:border-yellow-700 p-4 sm:p-5 rounded-xl">
                 <p className="text-yellow-800 dark:text-yellow-200 font-medium text-center text-sm sm:text-base">
-                  Site crawl registration will open at 12:00 PM today ({openingDateLabel}). You can review locations and the schedule now; registration will be available then.
+                  Site crawl registration will open at 13:00 PM today ({openingDateLabel}). You can review locations and the schedule now; registration will be available then.
                 </p>
               </div>
             )}
@@ -215,9 +216,9 @@ export default function CrawlsPage() {
                           </div>
                         </div>
 
-                        <p className="text-gray-600 dark:text-gray-400 text-sm mb-5 line-clamp-2">
-                          {crawl.description}
-                        </p>
+                        <div className="text-gray-600 dark:text-gray-400 text-sm mb-5 line-clamp-2">
+                          <RichTextContent html={crawl.description || ''} />
+                        </div>
 
                         <button
                           onClick={() => handleRegister(crawl)}
@@ -225,7 +226,7 @@ export default function CrawlsPage() {
                           className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-full hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 disabled:grayscale"
                         >
                           {!crawlsOpen
-                            ? 'Opens at 12:00 PM today'
+                            ? 'Opens at 13:00 PM today'
                             : isFullyBooked
                               ? 'Fully Booked'
                               : 'Register'}

@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { ArrowLeft, Save, Trash2, Loader2 } from 'lucide-react';
 import Image from 'next/image';
+import RichTextEditor from '@/components/RichTextEditor';
 
 interface CrawlDetail {
   _id: string;
@@ -119,8 +120,10 @@ export default function EditCrawlPage({ params }: PageProps) {
       }
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-crawls'] });
+    onSuccess: async () => {
+      // Refetch the admin crawls list so the cache is updated before we navigate
+      await queryClient.refetchQueries({ queryKey: ['admin-crawls'] });
+      queryClient.invalidateQueries({ queryKey: ['crawl', crawlId] });
       router.push('/admin');
     },
   });
@@ -130,8 +133,10 @@ export default function EditCrawlPage({ params }: PageProps) {
     updateMutation.mutate(formData);
   };
 
-  const handleDelete = () => {
-    if (confirm('Are you sure you want to delete this crawl event? This cannot be undone. You must remove all registrations for this crawl first.')) {
+  const handleDelete = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (confirm('Are you sure you want to delete this crawl event? This will also remove all registrations for this crawl and cannot be undone.')) {
       deleteMutation.mutate();
     }
   };
@@ -283,12 +288,11 @@ export default function EditCrawlPage({ params }: PageProps) {
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Description *</label>
-                <input
-                  type="text"
+                <RichTextEditor
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  onChange={(value) => setFormData({ ...formData, description: value })}
+                  placeholder="Add a rich description (headings, lists, bold, links)..."
                   required
-                  className="w-full px-4 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 focus:outline-none dark:bg-gray-700 dark:text-white"
                 />
               </div>
               <div>
@@ -306,9 +310,10 @@ export default function EditCrawlPage({ params }: PageProps) {
               {(updateMutation.error || deleteMutation.error) && (
                 <div className="bg-red-50 dark:bg-red-900/30 border-2 border-red-200 dark:border-red-800 rounded-lg p-4">
                   <p className="text-red-800 dark:text-red-200 text-sm">
-                    {(updateMutation.error || deleteMutation.error) instanceof Error
-                      ? (updateMutation.error || deleteMutation.error).message
-                      : 'An error occurred'}
+                    {(() => {
+                    const err = updateMutation.error ?? deleteMutation.error;
+                    return err instanceof Error ? err.message : err ? String(err) : 'An error occurred';
+                  })()}
                   </p>
                 </div>
               )}
@@ -324,7 +329,7 @@ export default function EditCrawlPage({ params }: PageProps) {
                 <button
                   type="button"
                   onClick={handleDelete}
-                  disabled={deleteMutation.isPending || (crawl._count?.registrations ?? 0) > 0}
+                  disabled={deleteMutation.isPending}
                   className="flex items-center justify-center gap-2 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {deleteMutation.isPending ? <><Loader2 className="w-5 h-5 animate-spin" /> Deleting...</> : <><Trash2 className="w-5 h-5" /> Delete</>}

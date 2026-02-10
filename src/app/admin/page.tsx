@@ -27,7 +27,7 @@ import {
   MapPin
 } from 'lucide-react';
 import Image from 'next/image';
-import { formatDate, formatTime, formatTimeRange } from '@/lib/utils';
+import { formatDate, formatTime, formatTimeRange, stripHtml } from '@/lib/utils';
 import { MeetingType } from '@/types/session';
 
 interface Session {
@@ -196,8 +196,9 @@ export default function AdminPage() {
       }
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-crawls'] });
+    onSuccess: async () => {
+      await queryClient.refetchQueries({ queryKey: ['admin-crawls'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-crawl-registrations'] });
     },
   });
 
@@ -457,7 +458,7 @@ export default function AdminPage() {
   };
 
   const handleDeleteCrawl = (crawlId: string, name: string) => {
-    if (confirm(`Are you sure you want to delete the crawl event "${name}"? This cannot be undone. Any registrations for this crawl will need to be removed first.`)) {
+    if (confirm(`Are you sure you want to delete the crawl event "${name}"? This will also remove all registrations for this crawl and cannot be undone.`)) {
       deleteCrawlMutation.mutate(crawlId);
     }
   };
@@ -1245,8 +1246,8 @@ export default function AdminPage() {
                             <td className="py-3 px-4 text-gray-600 dark:text-gray-400 text-sm max-w-xs truncate" title={crawl.address}>
                               {crawl.address || '-'}
                             </td>
-                            <td className="py-3 px-4 text-gray-600 dark:text-gray-400 text-sm max-w-[200px] truncate" title={crawl.description || ''}>
-                              {crawl.description || '-'}
+                            <td className="py-3 px-4 text-gray-600 dark:text-gray-400 text-sm max-w-[200px] truncate" title={stripHtml(crawl.description || '') || undefined}>
+                              {stripHtml(crawl.description || '') || '-'}
                             </td>
                             <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{formatDate(crawl.date)}</td>
                             <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
@@ -1275,9 +1276,9 @@ export default function AdminPage() {
                                 </Link>
                                 <button
                                   onClick={() => handleDeleteCrawl(crawl.id, crawl.name)}
-                                  disabled={deleteCrawlMutation.isPending || regCount > 0}
+                                  disabled={deleteCrawlMutation.isPending}
                                   className="inline-flex items-center gap-1 px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-                                  title={regCount > 0 ? 'Remove all registrations first' : 'Delete crawl event'}
+                                  title="Delete crawl event (and all its registrations)"
                                 >
                                   <Trash2 className="w-4 h-4" />
                                   Delete

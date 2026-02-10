@@ -118,14 +118,10 @@ export async function DELETE(request: Request, { params }: Params) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json({ message: 'Invalid crawl ID' }, { status: 400 });
     }
-    const regCount = await CrawlRegistration.countDocuments({ crawlId: id });
-    if (regCount > 0) {
-      return NextResponse.json(
-        { message: `Cannot delete: ${regCount} registration(s) exist for this crawl. Remove them first.` },
-        { status: 400 }
-      );
-    }
-    const deleted = await Crawl.findByIdAndDelete(id);
+    const objectId = new mongoose.Types.ObjectId(id);
+    // Delete all registrations for this crawl first (cascade)
+    await CrawlRegistration.deleteMany({ crawlId: objectId });
+    const deleted = await Crawl.findByIdAndDelete(objectId);
     if (!deleted) {
       return NextResponse.json({ message: 'Crawl not found' }, { status: 404 });
     }

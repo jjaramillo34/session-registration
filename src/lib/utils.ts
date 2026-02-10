@@ -41,4 +41,21 @@ export function toTitleCase(str: string): string {
     .split(' ')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
+}
+
+/** Strip HTML tags for plain-text display (e.g. table cells, map popups). */
+export function stripHtml(html: string): string {
+  if (!html?.trim()) return '';
+  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+/** Escape for safe use inside HTML (e.g. map popup content). */
+export function escapeHtml(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 } 

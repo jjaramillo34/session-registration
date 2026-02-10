@@ -7,12 +7,12 @@ import { toTitleCase } from '@/lib/utils';
 
 export async function POST(request: Request) {
   try {
-    // Registration opens at 12:00 PM today (server local time; set TZ for NYC if needed)
+    // Registration opens at 13:00 PM today (server local time; set TZ for NYC if needed)
     const now = new Date();
-    const todayNoon = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
+    const todayNoon = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 13, 0, 0);
     if (now < todayNoon) {
       return NextResponse.json(
-        { message: 'Crawl registration opens at 12:00 PM today. Please try again then.' },
+        { message: 'Crawl registration opens at 13:00 PM today. Please try again then.' },
         { status: 403 }
       );
     }

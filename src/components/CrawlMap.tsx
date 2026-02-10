@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { stripHtml, escapeHtml } from '@/lib/utils';
 
 // Set Mapbox token
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
@@ -196,7 +197,7 @@ export default function CrawlMap({ crawls }: CrawlMapProps) {
                     <h3 style="font-weight: bold; color: ${color}; margin-bottom: 8px;">${crawl.name}</h3>
                     <p style="margin: 5px 0;"><strong>${crawl.location}</strong></p>
                     <p style="margin: 5px 0;">${crawl.address}</p>
-                    <p style="margin: 5px 0; font-size: 0.9em;">${crawl.description}</p>
+                    <p style="margin: 5px 0; font-size: 0.9em;">${escapeHtml(stripHtml(crawl.description || ''))}</p>
                     <button 
                       onclick="document.dispatchEvent(new CustomEvent('flyTo', {detail: ${JSON.stringify(crawl.coordinates)}}))"
                       style="

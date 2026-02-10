@@ -52,3 +52,15 @@
     }
   }
 }
+
+/* TipTap WYSIWYG editor – prose inside editor */
+.rich-text-editor .ProseMirror p.is-editor-empty:first-child::before {
+  color: rgb(156 163 175);
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+.dark .rich-text-editor .ProseMirror p.is-editor-empty:first-child::before {
+  color: rgb(107 114 128);
+}

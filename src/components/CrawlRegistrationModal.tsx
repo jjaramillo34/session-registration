@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import { X, MapPin, Calendar, Clock, User, Mail, CheckCircle } from 'lucide-react';
 import { formatDate, formatTimeRange } from '@/lib/utils';
+import RichTextContent from '@/components/RichTextContent';
 
 interface CrawlRegistrationModalProps {
   isOpen: boolean;
@@ -134,9 +135,9 @@ export default function CrawlRegistrationModal({
                 <span>{formatTimeRange(crawl.time, crawl.endTime)}</span>
               </p>
               {crawl.description && (
-                <p className="text-gray-600 dark:text-gray-300 pt-1 border-t border-gray-200 dark:border-gray-600 mt-2">
-                  {crawl.description}
-                </p>
+                <div className="text-gray-600 dark:text-gray-300 pt-1 border-t border-gray-200 dark:border-gray-600 mt-2">
+                  <RichTextContent html={crawl.description} />
+                </div>
               )}
             </div>
           </div>
