@@ -7,22 +7,6 @@ import { toTitleCase } from '@/lib/utils';
 
 export async function POST(request: Request) {
   try {
-    // Registration opens at 13:00 (1:00 PM) today (server local time; set TZ for NYC if needed)
-    const now = new Date();
-    const registrationOpensAt = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 13, 0, 0);
-    if (now < registrationOpensAt) {
-      const openingDateLabel = registrationOpensAt.toLocaleDateString('en-US', {
-        weekday: 'long',
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric',
-      });
-      return NextResponse.json(
-        { message: `Site crawl registration will open at 13:00 PM today (${openingDateLabel}). You can review locations and the schedule now; registration will be available then.` },
-        { status: 403 }
-      );
-    }
-
     await connectDB();
     const body = await request.json();
     const { name, email, crawlId } = body;
