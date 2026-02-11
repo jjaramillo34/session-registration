@@ -1070,6 +1070,9 @@ export default function AdminPage() {
                             )}
                           </div>
                         </th>
+                        <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">
+                          Session (date & time)
+                        </th>
                         <th 
                           className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                           onClick={() => handleRegistrationSort('language')}
@@ -1137,6 +1140,11 @@ export default function AdminPage() {
                             <td className="py-3 px-4 font-medium text-gray-900 dark:text-gray-100">{reg.name}</td>
                             <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{reg.email}</td>
                             <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{reg.programName}</td>
+                            <td className="py-3 px-4 text-gray-600 dark:text-gray-400 text-sm">
+                              {session
+                                ? `${session.programName} · ${formatDate(session.sessionDate)} · ${formatTime(session.sessionTime)}`
+                                : '-'}
+                            </td>
                             <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{reg.language}</td>
                             <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{reg.agencyName || '-'}</td>
                             <td className="py-3 px-4">
@@ -1168,8 +1176,8 @@ export default function AdminPage() {
                                 </span>
                               )}
                             </td>
-                            <td className="py-3 px-4 text-gray-600 dark:text-gray-400 text-sm">
-                              {new Date(reg.createdAt).toLocaleDateString()}
+                            <td className="py-3 px-4 text-gray-600 dark:text-gray-400 text-sm whitespace-nowrap" title={new Date(reg.createdAt).toLocaleString()}>
+                              {new Date(reg.createdAt).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}
                             </td>
                             <td className="py-3 px-4">
                               <div className="flex items-center gap-2">
@@ -1465,8 +1473,8 @@ export default function AdminPage() {
                               </span>
                             )}
                           </td>
-                          <td className="py-3 px-4 text-gray-600 dark:text-gray-400 text-sm">
-                            {new Date(reg.createdAt).toLocaleDateString()}
+                          <td className="py-3 px-4 text-gray-600 dark:text-gray-400 text-sm whitespace-nowrap" title={new Date(reg.createdAt).toLocaleString()}>
+                            {new Date(reg.createdAt).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}
                           </td>
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-2">
