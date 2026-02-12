@@ -232,7 +232,7 @@ export default function ProgramPage({ params }: PageProps) {
                       Daytime Sessions
                     </h2>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                      NYCPS Staff and Partner Agencies Only
+                      Open to the Public!
                     </p>
                   </div>
                 </div>
@@ -319,7 +319,7 @@ export default function ProgramPage({ params }: PageProps) {
                       Evening Sessions
                     </h2>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                      Open to Families, NYCPS Staff and Partner Agencies • Translation Available
+                      Open to the Public!
                     </p>
                   </div>
                 </div>
