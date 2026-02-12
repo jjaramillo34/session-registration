@@ -172,11 +172,11 @@ export default function Home() {
                 </p>
                 <p className="font-semibold flex items-center justify-center gap-2 flex-wrap text-center">
                   <Users className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                  <span>OPEN TO NYCPS EMPLOYEES!</span>
+                  <span>OPEN TO THE PUBLIC!</span>
                 </p>
                 <p className="font-semibold flex items-center justify-center gap-2 flex-wrap text-center">
                   <Video className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                  <span>SPECIAL EVENING SESSIONS AVAILABLE FOR COMMUNITY MEMBERS!</span>
+                  <span>SPECIAL EVENING SESSIONS AVAILABLE FOR THE PUBLIC!</span>
                 </p>
               </div>
             </div>
