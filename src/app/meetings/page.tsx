@@ -133,7 +133,7 @@ export default function MeetingsPage() {
                   </p>
                 </div>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                  Release Date: March 2, 2026 at 12:00 PM ET
+                  Release Date: February 24, 2026 at 10:00 AM Eastern Time
                 </p>
               </div>
 
