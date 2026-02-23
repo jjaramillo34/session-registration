@@ -31,7 +31,7 @@ const PROGRAM_MAPPING: Record<string, string> = {
 
 // Helper function to parse date
 function formatDate(dateStr: string): string {
-  // Convert "Monday, February 23, 2026" to "2026-02-23"
+  // Convert "Monday, March 2, 2026" to "2026-03-02"
   // Remove the day name for better parsing
   const dateWithoutDay = dateStr.replace(/^[^,]+, /, '');
   const date = new Date(dateWithoutDay);
@@ -63,7 +63,7 @@ function formatTime(timeStr: string): string {
 // Evening Sessions Data - 8 total sessions
 const eveningSessions = [
   {
-    date: 'Monday, February 23, 2026',
+    date: 'Monday, March 2, 2026',
     sessions: [
       { time: '5:30 PM', program: 'Adult Ed' },
       { time: '6:30 PM', program: 'ReStart Academy' },

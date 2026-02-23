@@ -28,10 +28,10 @@ export default function MeetingsPage() {
   // Check if meetings page should be available
   useEffect(() => {
     const checkAvailability = () => {
-      // Set release date: February 23, 2026 at 12:00 PM Eastern Time
+      // Set release date: March 2, 2026 at 12:00 PM Eastern Time
       // EST (Eastern Standard Time) is UTC-5
-      // Create date: February 23, 2026 12:00 PM EST = February 23, 2026 17:00 UTC
-      const releaseDateUTC = new Date('2026-02-23T17:00:00Z');
+      // Create date: March 2, 2026 12:00 PM EST = March 2, 2026 17:00 UTC
+      const releaseDateUTC = new Date('2026-03-02T17:00:00Z');
       
       // Get current time in UTC
       const now = new Date();
@@ -121,7 +121,7 @@ export default function MeetingsPage() {
                   Meeting Links Coming Soon
                 </h1>
                 <p className="text-xl text-blue-600 dark:text-blue-400 mb-6">
-                  Meeting links will be available on February 23, 2026 at 12:00 PM Eastern Time
+                  Meeting links will be available on March 2, 2026 at 12:00 PM Eastern Time
                 </p>
               </div>
 
@@ -133,7 +133,7 @@ export default function MeetingsPage() {
                   </p>
                 </div>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                  Release Date: February 23, 2026 at 12:00 PM ET
+                  Release Date: March 2, 2026 at 12:00 PM ET
                 </p>
               </div>
 
