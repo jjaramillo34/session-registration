@@ -32,8 +32,9 @@ export default function Home() {
   });
 
   // Countdown timer
+  // February 24, 2026 at 10:00 AM Eastern Time
   useEffect(() => {
-    const eventDate = new Date('2026-03-02T00:00:00').getTime();
+    const eventDate = new Date('2026-02-24T10:00:00').getTime();
     
     const updateTimer = () => {
       const now = new Date().getTime();
